@@ -3,6 +3,8 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
+
+\usepackage{graphicx}
 \author{Helena Brekalo}
 \begin{document}
 
@@ -14,13 +16,15 @@
  
 \textsc{\LARGE KU Leuven}\\[1.5cm] % Name of your university/college
 \textsc{\Large Ma Ingenieurswetenschappen: Computerwetenschappen}\\[0.5cm] % Major heading such as course name
-\textsc{\large Development of Secure Software}\\[0.5cm] % Minor heading such as course title
 
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Course notes}\\[0.4cm]
+{ \huge \bfseries Development of Secure Software}\\[0.4cm]
 \HRule \\[1.5cm]
- 
+
+
+\textsc{\large Course notes}\\[0.5cm] % Minor heading such as course title
+
 
 \Large \emph{Author:}\\
 Helena \textsc{Brekalo}\\[3cm]
@@ -152,22 +156,14 @@ Java protects against:
 \paragraph{Slide 6:} C does all this for optimization purposes. C is designed for performance, so that's why it doesn't check bounds etc. if behaviour is undefined, it depends on the compiler: very implementation-dependend. The trick of all attacks will be to know the implementation details so well that you can tune it to your advantage.
 
 \paragraph{Slide 7:} Piece of code with spatial safety vulnerability. The program defines a main function and a cookie, an array of characters. Then you print out the address of the buf-variable and the address of the cookie variable, so you will get the addresses, it helps us exploit it. Gets is one of the unsafe C-functions: reads from standard input until it reaches a new line. It will store them in buf. This is where the vulnerability is: it doesn't put a limit on the number of chars it reads, so if you read more than 80, you will have a buffer overflow.\\
-Question: how can you make this program print out "you win"? If you add more than 80 chars to buf. Normally cookie and buf will be allocated together on the stack (see drawing). It could also put cookie underneath buf. Compiler chooses this! Assuming the memory grows upwards and you give 80 chars, you start filling the buffer, let it overflow, and then you can write in cookie. Originally, memory was allocated downwards. Modern compilers will sometimes reorder the local variables to make buffer overflows less likely.
+Question: how can you make this program print out "you win"? If you add more than 80 chars to buf. Normally cookie and buf will be allocated together on the stack (see Figure \ref{les2_01}). It could also put cookie underneath buf. Compiler chooses this! Assuming the memory grows upwards and you give 80 chars, you start filling the buffer, let it overflow, and then you can write in cookie. Originally, memory was allocated downwards. Modern compilers will sometimes reorder the local variables to make buffer overflows less likely.
 
-
-
-
-
-%TODO Afbeelding invoegen
-
-
-
-
-
-
-
-
-
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=90mm]{Les2_01.png}
+\caption{Cookie and buf allocated on the stack together.} 
+\label{les2_01}
+\end{figure}
 
 \paragraph{Slide 8:} How to make this program print "you win"? Classic stack-based buffer overflow. It's the oldest memory safety issue.
 
@@ -175,29 +171,42 @@ Question: how can you make this program print out "you win"? If you add more tha
 \begin{itemize}
 %TODO code mooi maken
 \item Automatic: you can in the body of the function declare variables. E.g.
-	int f () {    int I = 10;    char b[80];} space for these variables will be allocated "automatically": any invocation of f will give you different instantiations of f. when an invocation to f happens, a new part of memory will be allocated on the stack. As a programmer, you don't have to do anything to (de)allocate this. The activation record of f will be popped afterwards automatically.
-\item Static: it's possible to declare variables outside the body and then you will be able to call it everywhere in the class. The compiler will, once and for all, allocate memory for that variable. You don't have to worry about allocation or freeing becaueys it lives the entire lifetime of the program. E.g.:int j = 10;int f () {    int I = 10;    char b[80];}
-\item Dynamic: (C: malloc, java: new). This is the only form of explicit memory allocation. Then somehwere in memory, the library will call a piece of memory in runtime until you free it/the garbage collector takes it away. E.g.:int f () {    int I = 10;    char b[80];    int * p.malloc(10); ??} free(p);
+\begin{verbatim}
+	int f () {
+	    int I = 10;
+	        char b[80];
+	}
+\end{verbatim}
+Space for these variables will be allocated "automatically": any invocation of f will give you different instantiations of f. when an invocation to f happens, a new part of memory will be allocated on the stack. As a programmer, you don't have to do anything to (de)allocate this. The activation record of f will be popped afterwards automatically.
+\item Static: it's possible to declare variables outside the body and then you will be able to call it everywhere in the class. The compiler will, once and for all, allocate memory for that variable. You don't have to worry about allocation or freeing becaueys it lives the entire lifetime of the program. E.g.:
+\begin{verbatim}
+	int j = 10;
+	int f () {
+	    int I = 10;
+	    char b[80];
+	}
+\end{verbatim}
+\item Dynamic: (C: malloc, java: new). This is the only form of explicit memory allocation. Then somehwere in memory, the library will call a piece of memory in runtime until you free it/the garbage collector takes it away. E.g.:
+\begin{verbatim}
+	int f () {
+	    int I = 10;    
+	    char b[80];    
+	    int * p.malloc(10);
+	} 
+	free(p);
+\end{verbatim}
 \end{itemize}
 
 \paragraph{Slide 10:} Division between the data is a convention maintained by the compiler.
 
-\paragraph{Slide 11:} You can see this at work: a program with s a static global variable, a local variable (l) nad a dynamic variable (d). 
+\paragraph{Slide 11:} You can see this at work: a program with s a static global variable, a local variable (l) and a dynamic variable (d). See Figure \ref{les2_02}.
 
-
-
-
-%TODO afbeelding invoegen
-
-
-
-
-
-
-
-
-
-
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=20mm]{Les2_02.png}
+\caption{A program with s a static global variable, a local variable (l) and a dynamic variable (d).} 
+\label{les2_02}
+\end{figure}
 
 \paragraph{Slide 13:} You have a call stack that is used to track function calls and returns. There are local variables and everything that has to do with a specific invocation in the activation record. A consequence is that we have an interesting situation: we have automatically allocated local variables close to other interesting data. If you succeed in finding a bug that overflows the local variables, you don't have to overflow far, you get a lot of power.
 
@@ -209,19 +218,14 @@ The infinite loop is to avoid the program from crashing. If you look at the exam
 
 \paragraph{Slide 18:} You can address memory at the word level or at the bye level. You can implement that in 2 ways. The addresses go up by 4 because addresses can be accessed by byte or by word. Every one of the words will have 4 bytes associated with it. The choice you make it in what direction you put the bytes (from right to left or from left to right).
 
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=90mm]{Les2_03.png}
+\caption{Placement of the attack code.} 
+\label{les2_03}
+\end{figure}
 
-
-
-%TODO afbeelding
-
-
-
-
-
-
-
-
-You can recognize our attack code when you see feeb2ecd: FE EB 2E CD. If the processor would be big-endian, you woul dhave to read it the other way around.
+You can recognize our attack code when you see feeb2ecd: FE EB 2E CD (see Figure \ref{les2_03}). If the processor would be big-endian, you would have to read it the other way around.
 
 \paragraph{Slide 19:} We will attack this program. It takes 2 strings that point to chars. The function allocates a temporary array, then you copy the first string into it and concatenate the second string to it. Then you compare the string to the hardcoded string. If it's equal, you return true, otherwise false. The importance is that the memory safety vulnerabilities are in strcpy and strcat. If the length of either one (or both) of the strings is too large, then you have a buffer overflow. You could implement this with loops too (\textbf{Slide 20}). It does the same thing, but it's harder to see there. 
 
