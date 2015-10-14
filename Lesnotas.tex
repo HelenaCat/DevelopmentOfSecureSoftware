@@ -67,13 +67,13 @@ Project: 1/4 $\rightarrow$ needs to be defended at the exam. Can't be redone in 
 \paragraph{Slide 28:}Adversary model: in order to reason about security as an engineer, you need to model your adversary. You need to make assumptions about what they can and cannot do. You have to be explicit about what adversaries you worry about.
 
 \paragraph{Slide 29:} You can also start from threats instead of the security goals of your system. Sometimes it makes sense to think about security in the two ways.\\
-Threats can be classified (e.v. STRIDE by Microsoft):
+Threats can be classified (e.g. STRIDE by Microsoft):
 \begin{itemize}
-\item Spoofing: pretending you're someone you're not
-\item Tampering:
-\item Repudiation: deny doing something that you have done
+\item Spoofing: pretending to be you're someone you're not
+\item Tampering: breaking integrity
+\item Repudiation: deny having done something that you have done
 \item Information disclosure: breaking confidentiality
-\item DOS
+\item DOS (Denial-Of-Service): flipside of the availability goal
 \item Elevation of privileges: expand the access rights you have (you're a student but work as an admin).
 \end{itemize}
 They're too vague about themselves, you have to be more specific when defining the threats.
@@ -110,7 +110,7 @@ Project: reports needed and will be questioned on the exam. 30 hours of (individ
 
 \paragraph{Slide 40:} We had an analysis of an email system. We didn't pay a lot of attention to what examples of vulnerabilities are. Now we'll talk about vulnerabilities in practice. We'll focus on design and implementation security issues. It's important which vulnerabilities matter the most in practice. 
 
-\paragraph{Slide 41:} The list of mitre is very specific. It identifies a specific vulnerability in a specific version of a specific system. The CWE tries to abstract a a bit: they try to classify them according to types and then (??).
+\paragraph{Slide 41:} The CVE-list is very specific. It identifies a specific vulnerability in a specific version of a specific software product. The CWE tries to abstract a a bit: they define types of threats (e.g. SQL injection, buffer overflow,...) and then classify them according to these types.
 It's not based on vulnerabilities that enter early during design! 
 
 \paragraph{Slide 42:} Overview of how important certain vulnerabilities were over a certain stretch. You see types of flaws, then you see over a period of 5 years how common they were (over those 5 years). Then you see for each year specifically how often all the vulnerabilities occurred. 
@@ -118,7 +118,7 @@ We'll talk about the top 3. we'll study them in more detail during the course.
 
 \paragraph{Slide 43:} Buffer overflow: make a program misbehave by providing it with some input (exploiting a bug, e.g. writing past the bounds of an array.) If the program doesn't check for that, it will obey and corrupt memory. That may cause the program to overwrite critical data or execute code.
 
-\paragraph{Slide 44:} Typically, on a heavy web application, you have (… 19.00). There will be code running on the application server. You can write code that dynamically constructs SQL-commands to communicate with the back-end. In SQL-injection you manipulate strings. The given example can be used to check if the user with the given password is registered. If all goes well, then you get the query in slide 46. the result will contain 1 entry. Otherwise it will send you to a page to create an account. The code is insufficiently defensive.
+\paragraph{Slide 44:} Typically, on a heavy web application, you have static pages at the web server, business logic at the application server and persistent storage at the back end. There will be code running on the application server. You can write code that dynamically constructs SQL-commands to communicate with the back-end. In SQL-injection you manipulate strings. The given example can be used to check if the user with the given password is registered. If all goes well, then you get the query in \textbf{Slide 46}. the result will contain 1 entry. Otherwise it will send you to a page to create an account. The code is insufficiently defensive.
 
 \paragraph{Slide 47:} If you execute the given code. In SQL, everything after -- is a comment, so it's syntactically correct. The database will ignore the second part, so you can login as user John without entering a password.
 Slide 50: related to SQL-injection. Instead of attacking the database, you attack one of the clients. If you know that clients support executional Javascript and if the code is insufficiently defensive, you can send the code at the bottom with a script, which will be sent to the back-end and it will be executed in the client's browser.
@@ -130,7 +130,7 @@ We see that vulnerabilities are typically at application-level. They're not in t
 
 \paragraph{Slide 53:} Top 25 of important threats. Many of them have to do with IO-validation. Some have to do with crypto. The majority has to do with defensive programming.
 
-\paragraph{Slide 54:} Prevalence of vulnerabilities. The blue line seems here to stay. Some vulnerabilities come up and die quickly, but are almost not exploited today. The difficult ones only die out very slowly.
+\paragraph{Slide 54:} Prevalence of vulnerabilities. The blue line seems here to stay. Some vulnerabilities come up and die quickly and are almost not exploited today. The difficult ones only die out very slowly.
 
 \section{Slides: 2. LowLevelSoftwareSecurity}
 
