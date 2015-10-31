@@ -15,6 +15,13 @@
 \center % Center everything on the page
  
 \textsc{\LARGE KU Leuven}\\[1.5cm] % Name of your university/college
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=30mm]{logo_theo.png}
+\label{kulogo}
+\end{figure}
+
 \textsc{\Large Ma Ingenieurswetenschappen: Computerwetenschappen}\\[0.5cm] % Major heading such as course name
 
 
@@ -23,10 +30,10 @@
 \HRule \\[1.5cm]
 
 
-\textsc{\large Course notes}\\[0.5cm] % Minor heading such as course title
+\textsc{\Large Course notes}\\[0.5cm] % Minor heading such as course title
 
 
-\Large \emph{Author:}\\
+\large \emph{Author:}\\
 Helena \textsc{Brekalo}\\[3cm]
 
 {\large 2015-2016}\\[3cm] % Date
@@ -156,13 +163,13 @@ Java protects against:
 \paragraph{Slide 6:} C does all this for optimization purposes. C is designed for performance, so that's why it doesn't check bounds etc. If behaviour is undefined, it depends on the compiler: very implementation-dependent. The trick of all attacks will be to know the implementation details so well that you can tune it to your advantage.
 
 \paragraph{Slide 7:} Piece of code with spatial safety vulnerability. The program defines a main function and a cookie, an array of characters. Then you print out the address of the buf-variable and the address of the cookie variable, so you will get the addresses, it helps us exploit it. gets is one of the unsafe C-functions: reads from standard input until it reaches a new line. It will store them in buf. This is where the vulnerability is: it doesn't put a limit on the number of chars it reads, so if you read more than 80, you will have a buffer overflow.\\
-Question: how can you make this program print out "you win"? If you add more than 80 chars to buf. Normally cookie and buf will be allocated together on the stack (see Figure \ref{les2_01}). It could also put cookie underneath buf. Compiler chooses this! Assuming the memory grows upwards and you give 80 chars, you start filling the buffer, let it overflow, and then you can write in cookie. Originally, memory was allocated downwards. Modern compilers will sometimes reorder the local variables to make buffer overflows less likely.
+Question: how can you make this program print out "you win"? If you add more than 80 chars to buf. Normally cookie and buf will be allocated together on the stack (see Figure \ref{les02_01}). It could also put cookie underneath buf. Compiler chooses this! Assuming the memory grows upwards and you give 80 chars, you start filling the buffer, let it overflow, and then you can write in cookie. Originally, memory was allocated downwards. Modern compilers will sometimes reorder the local variables to make buffer overflows less likely.
 
 \begin{figure}[ht!]
 \centering
-\includegraphics[width=90mm]{Les2_01.png}
+\includegraphics[width=90mm]{Les02_01.png}
 \caption{Cookie and buf allocated on the stack together.} 
-\label{les2_01}
+\label{les02_01}
 \end{figure}
 
 \paragraph{Slide 8:} How to make this program print "you win"? Classic stack-based buffer overflow. It's the oldest memory safety issue.
@@ -198,13 +205,13 @@ Space for these variables will be allocated "automatically": any invocation of f
 
 \paragraph{Slide 10:} Division between the data is a convention maintained by the compiler.
 
-\paragraph{Slide 11:} You can see this at work: a program with s a static global variable, a local variable (l) and a dynamic variable (d). See Figure \ref{les2_02}.
+\paragraph{Slide 11:} You can see this at work: a program with s a static global variable, a local variable (l) and a dynamic variable (d). See Figure \ref{les02_02}.
 
 \begin{figure}[ht!]
 \centering
-\includegraphics[width=20mm]{Les2_02.png}
+\includegraphics[width=20mm]{Les02_02.png}
 \caption{A program with s a static global variable, a local variable (l) and a dynamic variable (d).} 
-\label{les2_02}
+\label{les02_02}
 \end{figure}
 
 \paragraph{Slide 13:} You have a call stack that is used to track function calls and returns. There are local variables and everything that has to do with a specific invocation in the activation record. A consequence is that we have an interesting situation: we have automatically allocated local variables close to other interesting data. If you succeed in finding a bug that overflows the local variables, you don't have to overflow far, you get a lot of power.
@@ -219,12 +226,12 @@ The infinite loop is to avoid the program from crashing. If you look at the exam
 
 \begin{figure}[ht!]
 \centering
-\includegraphics[width=90mm]{Les2_03.png}
+\includegraphics[width=90mm]{Les02_03.png}
 \caption{Placement of the attack code.} 
-\label{les2_03}
+\label{les02_03}
 \end{figure}
 
-You can recognize our attack code when you see feeb2ecd: FE EB 2E CD (see Figure \ref{les2_03}). If the processor would be big-endian, you would have to read it the other way around.
+You can recognize our attack code when you see feeb2ecd: FE EB 2E CD (see Figure \ref{les02_03}). If the processor would be big-endian, you would have to read it the other way around.
 
 \paragraph{Slide 19:} We will attack this program. It takes 2 strings that point to chars. The function allocates a temporary array, then you copy the first string into it and concatenate the second string to it. Then you compare the string to the hardcoded string. If it's equal, you return true, otherwise false. The importance is that the memory safety vulnerabilities are in strcpy and strcat. If the length of either one (or both) of the strings is too large, then you have a buffer overflow. You could implement this with loops too (\textbf{Slide 20}). It does the same thing, but it's harder to see there. 
 
@@ -236,6 +243,89 @@ At the return address we put chars with the ASCII code that, if we put them in m
 There are tools that will allow you to tell it to look for certain patterns (like null), and it will look up the machine code to pass it.\\
 Nopsled: you look for a string that's big enough and then you start with a -say- 1000 commands that are nop (no operation), then you don't have to aim as precisely as in the other example. Nopsled gives you more "room" to "land". \\
 Check out the paper "Smashing the stack for fun and profit"!
+
+\chapter{Lesson 3}
+
+Project: on October 30th: background and explanation on what we'll have to do, the Monday after that, we'll get the assignment and a week after that (starting Nov. 5th or 6th) the exercise sessions start (not obligatory).
+
+\section{Slides: 2. LowLevelSoftwareSecurity}
+
+\paragraph{Slide 25:} In a language like C, it's possible to access memory that you're not supposed to access. This is dangerous.
+Stack-based buffer overflow is the simplest way to hack a program, because a lot of programs put stuff on the stack. On the stack are local variables (that might be overflowable) and metadata (like return addresses) that are interesting to overflow. So if you have a vulnerability that overflows a stack-allocated variable, you're in luck.\\
+A second way to hack a program is via the heap: it's less clear that there's so much interesting stuff to overwrite, but still most vulnerabilities that involve a memory safety bug on a heap-allocated variable are exploitable. You can overwrite a function pointer or overwrite heap metadata (indirect pointer overwrite: generic technique where you overwrite a data pointer so that it points to a return address for example).
+
+\paragraph{Slide 27:} It's only an option of if your program stores pointers on the heap. For C++ programs, this is very common. The program has a struct which contains a character array and a pointer to a comparison function.
+These kinds of structs, when we allocate them with 'new', they will live on the heap. Let's assume that's the case. Both strcpy and strcat are memory safety vulnerabilities. We'll assume the strcpy is a constant and we'll abuse strcat.
+
+\paragraph{Slide 28:} The attack is simpler than on the stack because we now only have to understand how the struct is laid out in memory. It's just a data structure from the program, whereas the stack has a lot of metadata.
+The slide shows what it would look like in memory. We see the buffer (room for 16 bytes) and we see that in this case the content is "file://foobar". It's what you expect to see in memory when the vulnerability has not been exploited. (b) shows a repeating pattern that we can recognize. If (c) is all we want to do, we need to overwrite the function pointer so that it points to the (first) address in (c).
+
+\paragraph{Slide 29:} The idea will be to overwrite a data pointer that the program will write some data to, it gives you the power to change an arbitrary word in memory. You'll always have a way in. malloc() and free() are functions to manage memory. They work as follows.
+
+\paragraph{Slide 30:} The program will ask for heap memory and release it in a completely unpredictable order. At run time, the space in the heap needs to be managed. That management is done by malloc() and free(). The implementation we'll look at is Dlmalloc() (named after Doug Lee). Dlmalloc() works by managing the heap space by maintaining chunks (allocated parts that have been subdivided). In order to be able to implement this, the implementations of malloc() and free() need to maintain metadata. All the metadata is kept in heap (in line). We don't care about the metadata that the library maintains about chunks that are in use, but about the metadata about the free chunks. Every free chunk has at the beginning of the chunk some management info and then a forward pointer to the next free chunk. There's also backward pointers. $\Rightarrow$ A doubly linked list. When the library is maintaining the pointers, it has to manipulate the pointers (maintenance of a linked list). So there is code in the malloc()-implementation that does this. Essentially, what this code does is, it writes the backward pointer of c (for example) to the forward pointer of the free chunk. If we want to write the value at the beginning of the dashed arrow, it turns out that this is 12 bytes higher than where the start of the free chunk is (this is implementation-dependent). What the implementation does is, it will write the backward pointer to 12 bytes higher than to where the arrow points. The green value is written to 12 bytes above where the red value points. At some point in the execution of malloc(), the green value will be written 12 bytes above where the red value points. They're really close together, so if we change them together, we can choose what gets written and where it gets written.\\
+If you do an overflow in the part below c (it's taken), we can easily get to the green part. We write it 12 bytes below the value where we want to change it.
+
+\paragraph{Slide 31:} Blue: overwritten data. In the d-part we have the machine code and if malloc() now tries to free the red block, it will change the return address to point to the injected code. Typically, you need to try it out on your own machine and then make a good guess. If the trigger in the return address doesn't happened fast enough, the heap will be in an inconsistent state. In Linux, there's a patch that checks the pointers to see if they're still in a valid state.
+
+\paragraph{Slide 33:} Summary of what we just discussed. It's an extremely powerful attack technique.
+
+\paragraph{Slide 35:} This is only relevant where only some of the countermeasures are already in place. One of the countermeasures is to make sure that data is not executable. $\rightarrow$ This would stop all the attacks we have seen so far. We can have permission bits for example, so that we cannot execute data.\\
+Direct code injection: you bring your shell code with you as data, put it somewhere in memory and jump to it. This doesn't work very often anymore. It still works very well on embedded software, but on servers and bigger machines, this has become harder.\\
+Indirect code injection: we will still completely determine what the program does, but instead of manipulating what it does, you manipulate the stack pointer.
+
+\paragraph{Slide 36:} Suppose I succeed in taking over the stack pointer, so I can make it point wherever I want and I do this where the processor is about to execute return.  I let it point to a ``fake" stack that I bring with my data. Suppose we can do this, then we can essentially do anything we want. The trick is to reuse code that is already in code memory. libc is very important here: it's used by almost all functions. We'll craft a stack that will trigger the program into calling a lot of existing code and use the program in a way that it never intended to do. You make the return address to be the entry point to a function and you'll start executing the function (like the function open file). Where does this program get its parameters? On the stack! When the program is then executing, it will go looking on the fake stack. When f3 (the fake program) is ready, its return address is found on the stack. You make it again point to a function of your liking (f2 in this case).
+
+\paragraph{Slide 42:} We can make the program do whatever we want with parameters we choose.\\
+ROP (return-oriented programming): variation: instead of calling existing functions, all you need are small pieces of binary code that RET (re-enter the return (?)). It will string together a chain of gadgets. It turns out that as soon as you have a program of a certain size, the probability of finding a  Turing-complete set of gadgets in the program quickly reaches 100\%. It's used widely in practice. A lot of countermeasures are still bypassable (with this for example).
+
+\paragraph{Slide 43:} How to discharge the assumption? The best way is to jump to a trampoline: we know how to divert the control flow (overflow the return address and function pointer), but we don't know where to jump to. A trampoline is one of these gadgets that will write to the stack pointer register.
+
+\paragraph{Slide 45:} Instead of overwriting a return address or a function pointer, we overwrite it and jump directly to the injected code to the trampoline. When this succeeds, we have to make sure that whatever is put in the stack pointer there is something that points to an array of memory that we control.
+
+\paragraph{Slide 44:} The function gets an array of data, a length and a function pointer. It will copy data to a temporary array, then quicksort it and then return it. Let's assume that memcpy is a place where you have a memory safety vulnerability (if the attacker can overflow the data-array). We could overwrite the function pointer and make it jump to a trampoline. Then we have to understand what the state of the pointer is. The comparison pointer is passed to quicksort. We have to look into the binary code of quicksort (\textbf{Slide 45}). It's moving ebx into the stack pointer: points to the first argument of the temp array. 
+
+\paragraph{Slide 46:} Dump of memory. You see that in the normal stack contents, there's free space for tmp. We'll use the dummy data in the benign overflow contents where we'll overwrite the comparison value to the blue value.\\
+Instead of calling the cmp argument of the normal stack contents, it will call the trampoline. It will move the stack pointer to SP in \textbf{Slide 47}. Then we'll do our return and we are in the situation we wanted and now things will start happening as explained. We'll allocate new memory (at the top of code memory), then go down the memory.
+
+\paragraph{Slide 50:} InterlockedExchange: thread-safe way of writing bytes to memory and we use it to write at the address 7000, the value fe eb 2e cd. When that returns, we'll jump to 7000, which is where the shell code will be.
+
+\paragraph{Slide 52:} All the attacks so far wanted to change what the code would do. It was unrelated to what the code was doing. Data-only attacks execute the source code as it is there, but they mess with the data the program is handling. They are a bit more application-specific.
+
+\paragraph{Slide 54:} Very old attack against Linux login. The program has a password file that has a lot of info with user names and a hashed version of their passwords (and the place where it's stored). The program has to get a login name from the user, the hashed password from the file, the hashed password from the user and then check if they're the same.
+
+\paragraph{Slide 55:} The stack looked like on the slide. When you type in the password and you type a password that's too long, you'll overflow the password that was read from the password file. Then you can choose the contents of both variables.\\
+The trick is to pick a password that has the form of \textit{$<$any word you choose$>$} and then you hash the password. As an attacker you then choose what is in there. This is clearly data-only: only code from the login-program, but it's also clearly exploited. It's also very specific.
+
+\paragraph{Slide 56:} We'll change data in the program: it takes an array of pairs (argument and result). The method will update a specific pair which is at index offset and the result will be computed by running an external program. You can exploit this program. If you assume that the attacker can choose the offset and the value, the program is vulnerable. It's similar to an indirect pointer overwrite.\\
+You have helper functions that are often used in programs. By changing one pointer, you can change the data structure that drives this.\\
+The expectation is that this will become more important.
+
+\paragraph{Slide 58:} When stack-based overflows became popular, stack canaries were developed.
+
+\paragraph{Slide 59:} There's now canaries in the stack. In an activation record, we add canaries. This should not be obvious to the attacker. The attacker should have no good way of guessing what the canary will be. You'll add code that on every return checks if the value is still the same. If we now have an overflow, it will go over the canary and if the attacker cannot know this (or its value), the attacker will overwrite the canary. Before the return happens, the program will check if the canary value is still the same (by comparing it to a register value for example). If it's the same, you can return, otherwise the program is blocked and the stack overflow can't be done.\\
+Canaries will help against stack based buffer overflows.\\
+It will not help against heap-based buffer overflows. \\
+It would also not help against indirect pointer overwrites. \\
+It depends for return-to-libc attacks. \\
+It doesn't have any impact on data-only attacks.
+
+\paragraph{Slide 63:} Stops direct code injection attacks. 
+
+\paragraph{Extra slide:} See Figure \ref{les03_01}: exercise. You have 64 bytes for the name, but you read 128 bytes. If you have stack canaries, you'll have to exploit it differently. You have to get to the return address without touching the canary. The len-variable is used as an index in the reply bufer (in memcpy). If you can make this very big, you can overwrite length to let it point to somewhere else. You can overwrite it in read(fd,name,128). Also see Figure \ref{les03_02}. 
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=120mm]{Les03_01.jpg}
+\caption{Lesson 3, Extra slide.} 
+\label{les03_01}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=20mm]{Les03_02.png}
+\caption{Lesson 3, Extra slide.} 
+\label{les03_02}
+\end{figure}
 
 
 \end{document}
