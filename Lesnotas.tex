@@ -327,5 +327,144 @@ It doesn't have any impact on data-only attacks.
 \label{les03_02}
 \end{figure}
 
+\chapter{Lesson 4}
+\section{Slides: 2. LowLevelSoftwareSecurity}
+
+\paragraph{Slide 64:} We focus on the consequences of bugs in unsafe languages. They put the responsibility of dealing with memory in the hands of the programmer. We have spatial safety bugs (bugs where the programmer allocates a certain range of memory, typically an array, that has a certain fixed size and you use it beyond that size) and temporal safety vulnerabilities (you have the same effect: you touch memory you shouldn't touch, but here you allocate memory, then it gets deallocated, but you keep using it. If memory is already popped, you might access interesting stuff). We've seen different ways of exploiting this: we saw a number of attack techniques: direct code injection (you bring code with you as data such that, when it's put in memory, it can be interpreted as machine code. You use this to bring you to your code in memory), indirect code injection (you don't bring what you want to do as code, but you bring it as a fake stack which allows you to make the program do whatever you want. It's an alternative to bringing your machine code. The good thing about this is that the stack is always data. This attack will still work, even if you have countermeasures against direct code injection) and techniques to overwrite data: indirect pointer overwrite (you have some data point in memory that the program will later reference to write to (I think?). If you can change this, this allows you to surgically change a word in memory. You can make the program write something to an address of your choosing) and data-only attacks (you overwrite some data of the program that makes the program behave differently. This is more application-specific).\\
+The countermeasures we saw are stack canaries (in response to the stack-based buffer overflow. You put an integrity check right before the return address, so you can see if it's overwritten) and non-executable data (you bring data into memory that is later interpreted as code (that's the attack), so it's a good countermeasure against those attacks). These countermeasures are extremely common today, but they're far from perfect. We'll be discussing 2 more: control-flow integrity (usually, if a program behaves well, there are a number of things you can observe. If a program is not under attack, the program pointer will always be in the static or code area of the stack (see Figure \ref{les04_01}. This is partly what non-executable data tries to build on: if it leaves the area, the program will crash. The code section consists of code for a number of functions and the way the instruction pointer jumps around is very structured. Typically, the first time you enter it is through the function: you'll always enter the area at the beginning. The return will always return to one place behind where it came from. Compiled source code has this nice structure. The different attacks we saw made the instruction pointer jump around differently: they would make it jump to the beginning of functions, instead of to a return. The idea of CFI is weaving into the program and check if the way in which the program counter jumps around is sane. You can make this very tight or very loose. The basic idea is to do some sanity checks on how control flow is happening in the code section of memory.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=20mm]{Les04_01.png}
+\caption{Lesson 4, Slide 66.} 
+\label{les04_01}
+\end{figure}
+
+\paragraph{Slide 66:} You can introduce extra checks in the code. Whenever we are about to use a code pointer, we want to do a sanity check on it. You can make the programmer do this (not very practical). We have a struct with a function pointer, if this is the case and we know that the cmp function is only supposed to 2 different functions, then why not add this as a check to our code? Whenever we are about to use the pointer, we check if the pointer is equal to the address of either functions. If not, the pointer is pointing somewhere else where we don't expect and it's probably the consequence of an attack. We'll automate this, because letting the programmer do this check is not very practical. 
+
+\paragraph{Slide 67:} We want to do something like in \textbf{Slide 66}, but automatically. We don't have to check whenever we have a hardcoded call to a specific function (the sort-calls). If we assume that code memory is non-writable, then an attacker can never change the address of the call to sort. The only thing we have to worry about are calls to a function pointer, so within sort there must, at some point be a call to this function pointer (like lt and gt). They don’t have a hardcoded address, they're indirect calls. The second thing we have to worry about are the returns: we have to worry about where it could possibly return. The compiler will analyze the entire control flow graph of the program for both scenarios where the calls can go and where the returns can go. The compiler will do an effort to make a graph like on the slide that shows where each call instruction can potentially go and where each return instruction will potentially return to. The compiler will instrument every call and every return with additional checks. When the compiler has determined that a certain call can only go to 2 places, it will choose 2 labels and inject them right before the place where you can call and it will check if the label is present right before the jump to the call. If it's not present, you abort execution. Same for returns: after you have determined where you can return, you associate a label with that return and all the places where you could return, you check if the label is present right before you return. You pop an address off the stack, you check if the label is okay, if it is, continue, otherwise you crash. If you choose a label of a 32-bit word, the chances of an attacker succeeding are almost 0.\\
+You still have some weaknesses: it's still possible that the upper left call could return to a different place. You could pck a part of the graph to return to. It's not yet widely deployed. There's a lot of research. Most C compilers don't implement it yet, because it costs 50-80\% of computing time.
+
+\paragraph{Slide 68:} Layout randomization: you have to be able to predict where something will be in memory. Almost every attack where you overwrite a certain array to touch another one, you have to make assumptions on the layout of memory. The idea of layout randomization is to put some randomness in there to make it harder for hackers.
+
+\paragraph{Slide 70:} Part of the memory of 2 different runs on the same system are shown. We see a runtime fragment. We see a call to a function. The interesting thing is that if you look at the same fragments of the stack, many things are different and some are the same. The addresses of where stuff is on the stack differs (return address and tmp array). So if you want to overwrite the return address to overwrite the tmp address, you wouldn't know which address to put there, because it differs per run. As an attacker, when you prepare your attack, you have to think what to write there and if this changes every time the program starts, you have no hope of doing it right.\\
+If you look at the contents section, you see that everything that is data is the same, but everything that is addresses differ. This is the same run of the same program, but the addresses differ.\\
+It's hard for a compiler to completely randomize this. You don’t want the stack to be in arbitrary places in memory, you want to put stuff together for performance reasons.\\
+If you look at the cmp argument and the return address, you can see that the only difference between the code is that it's shifted over a certain distance: all with a fixed offset. So if an attacker succeeds at peaking into your memory, he may succeed in de-randomizing the layout and attack again. If you want to find gadgets in memory, you can look where cmp is, and you know the address of 1 part of the code, then you know everything, so you can find the other gadgets and find a trampoline.\\
+It's a powerful idea, but the way it's implemented makes it quite bypassable in practice.\\
+All modern OS's have some form of this.
+
+\paragraph{Extra Slide:} See Figure \ref{les03_01}: exercise.
+\begin{enumerate}
+\item No countermeasures: there's an easy way to exploit the program. You can overflow name. See Figure \ref{les04_02}.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=20mm]{Les04_02.png}
+\caption{Lesson 4, Extra Slide, Attack 1.} 
+\label{les04_02}
+\end{figure}
+
+\item With stack canaries (between len and FP), you can overwrite length, so that when memcpy(reply+len) happens, you can choose where it is copied, you can write it over the FP again. See Figure \ref{les04_03}.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=20mm]{Les04_03.png}
+\caption{Lesson 4, Extra Slide, Attack 2.} 
+\label{les04_03}
+\end{figure}
+
+\item  Stack canaries and non-executable code: a return-to-libc attack can be done: you bring your fake stack into name, overwrite length such that when you copy the name over reply + len, you overwrite the return address to a trampoline that switches to the fake stack.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=20mm]{Les04_04.png}
+\caption{Lesson 4, Extra Slide, Attack 3.} 
+\label{les04_04}
+\end{figure}
+
+\item Stack canaries + non-executable code + address stack layout space randomization: get access to the offset: peak into memory by using the write function: we're sending len+64 bytes to the attacker, starting at memory address reply. Overwrite len with something really big, so that write will send you back that many bytes of memory, this will be memory of the stack. You'll have a snapshot like in \textbf{Slide 70}, then you know what the offset is, because the program is still running, it can't be re-randomized.  See Figure \ref{les04_05}.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=20mm]{Les04_05.png}
+\caption{Lesson 4, Extra Slide, Attack 4.} 
+\label{les04_05}
+\end{figure}
+
+\item Stack canaries + non-executable code + address stack layout space randomization + CFI: for now, there's no way to hack it yet.
+\end{enumerate}	
+	
+\paragraph{Slide 72:} In the cases where the table is empty, there's no protection at all. All the other entries are at best partial defenses.
+
+\paragraph{Slide 73:} We need other defenses. You can't just write your C-code, let it be vulnerable, and hope that the compiler will fix it for you. You have to write your code such that you detect and eliminate it or you prevent it.
+
+\paragraph{Slide 74:} If you program just in Java or C\#, you cannot introduce the given vulnerabilities. Java has OutOfBoundsExceptions for memory safety: runtime bound checking and the type system. There's garbage collection too for temporal safety.\\
+Even if you have bounds checking, it's not an excuse of having bugs in your program. Even if you have a safe language, you still want to get rid of bugs.
+
+\paragraph{Slide 75:}
+\begin{itemize}
+\item Code review: having people read code with the purpose of finding unsafe code. 
+\item Tools: limit the amount of false positives that you have. This is also hard. Sound tools: when the program tells you that there's not memory safety vulnerability, you're sure it's safe. It's still in development. 
+\item Testing tools:
+\begin{itemize}
+\item Fuzz testing: you send garbage to your program. Disadvantage: you typically don't get deep into the program, because you'll get errors quickly. 
+\item Directed fuzz: It should generate garbage that looks good enough to get deep into the program
+\item Symbolic execution
+\item Run-time memory safety checkers: will slow down execution
+, but if there is an issue, it will find it. 
+\end{itemize}
+\end{itemize}
+
+\paragraph{Slide 77:} If you can use a safe language, it's preferable.
+
+\section{Slides: 3. WebApplicationSecurity}
+
+\paragraph{Slide 1:} We're going to look at the same kinds of issue, but for a completely different kind of software development. The web platform is at least as important as low-level security. 
+This is younger, the amount of new developments is probably higher here. The mobile platform is similar to this.
+
+\paragraph{Slide 2:} We'll see an overview of how the web platform works. It's less well-scoped than for example C. You can program in so many different technologies. On low-level platforms, we cared about memory safety, on the web it's much more complicated: the server might be malicious, or the client, you might be talking to 2 servers at the same time,…
+
+\paragraph{Slide 3:} One of the defining characteristics of the web is that it's accessed through URLss. A URL has 7 components:
+\begin{enumerate}
+\item The scheme: name of the protocol that should be used. We'll only care about http and https.
+\item Second part consists of 2,3,4. Address: could be an IP address or a DNS name, it's supposed to be a communication end point (either directly or indirectly) or a server that you can talk to. 2 optional parts that can extend the address: 4: the port you should connect to. If you omit this, the port is determined by the scheme (every scheme has a default port). 2: authentication credentials: not used commonly anymore. If the server requires you to login, you can do it like in the example
+\setcounter{enumi}{4}
+\item Path to resource: originally the idea of this part of the URL was that it would map to something on the file system of the server, but now it's more a method name that you call on the server. It maps to some code on the server.
+\item Query string: starts after a question mark
+\item Fragment identifier: not sent to the server, but identifies a part of the resource that you get back
+\end{enumerate}
+Several of these parts will play an important role. 
+The URL is the entry point to the web. The web itself requires you to have a browser and a server. They will speak a protocol called HTTP. If you type/click a URL, you'll have a session between them.
+
+\paragraph{Slide 4:} It's stateless, has a very simple request-response structure. It seems simple, but in practice it's extremely complicated. It's usually used in a stateful way. Even though the basic protocol has no security features, there are often mechanisms for protection.
+
+\paragraph{Slide 5:} HTTP is extensible: there headers which can change the meaning of the protocol. You have hundreds of header types that can change the protocol a little bit.\\
+There's a method name, then a part of the URL that you're trying to access (red), a header and potentially a body.
+
+\paragraph{Slide 6:} Host-header: you're sending a GET-request to a server. This host machine might host different websites. In order for the server to be able to distinguish in which site you're interested, it needs to know in which DNS-name you're interested. \\
+The only 2 that will be relevant to us are cookies and the Referer-header (put by the browser into the HTTP request to tell it where the client is coming from. If you're on cs.kuleuven.be and you click on wms.cs.kuleuven.be, there might be a referer. It's up to the browser whether it includes this. You might be able to use this information to make decisions at the server).
+
+\paragraph{Slide 7:} Response codes. 
+
+\paragraph{Slide 8:} Example response: many different kinds of headers. The header related to cookies is security-relevant. 
+
+\paragraph{Slide 9:} HTTPS: variant of HTTP. It runs HTTP on top of TLS (a cryptography protocol that adds a number of security properties to TCP connections). Sometimes it will help authenticate the server, that depends on a number of configuration aspects of the browser and the server. It's not a main focus of this course how authentication on the web happens. The fact that you have HTTPS doesn't mean that you get everything that good cryptography gives you. 
+
+\paragraph{Slide 10:} Cookies are used for session management. They're a mechanism that allows the server to put a state on the client. It's a request from the server to keep the file and send it back when returning. The server can ask you to save some stuff that you will send back (this is a bit oversimplified). The server can configure some things like an expiration date, the domain path scope of the cookie (``send it back to any site under kuleuven.be") and security aspects (server can ask the client to only send the cookie back over a secure connection).
+
+\paragraph{Slide 11:} Cookies are the main way to keep sessions. Stateless means that all requests are independent, that's clearly undesirable for webpages, they want to set up a session. When a request comes in, the server checks if any cookies are being sent, if not, it's the first visit and a cookie will be sent. If you come back, the cookie will be sent back and it's clear that the person is returning. If a cookie has a session identifier, then you can associate state to it. 
+It had a lot of security issues. 
+
+\paragraph{Slide 12:} Authentication: the protocol in HTTP is almost never used. You can send a username and a password as a header. This is very insecure, because the password might travel in cleartext over the network. This might happen when a new window pops open where you have to log in. Now, the application itself is smart enough to authenticate you. 
+Today, there's also authentication providers on the application, like with KULeuven. There's authentication providers: authenticate by signing on with a single sign-on provider. 
+
+\paragraph{Slide 13:} There are a lot of possibilities. The server of Google greatly differs from the server of the website that you host. The example shows a medium-sized web server. Back-end for persistent storage.
+The 3 work together to compute responses to HTTP-requests.
+Most of the vulnerabilities will not care about the internal structure of the server, but the overall architecture is something that is important. We'll keep a high-level view of the web server. Right now, the server is a black box that receives an HTTP request and returns an HTTP response.
+
+\paragraph{Slide 14:} One of the parts that the server creates when it generates a response, consists of HTML and extensions. It's a combination of content, markup and code. Most HTTP-content you get back, will contain all of these 3. Most websites send you code (like JavaScript).
+
+
 
 \end{document}
