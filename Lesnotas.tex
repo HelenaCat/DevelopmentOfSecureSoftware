@@ -5,6 +5,17 @@
 \usepackage{amssymb}
 
 \usepackage{graphicx}
+\usepackage{color}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+} 
+
 \author{Helena Brekalo}
 \begin{document}
 
@@ -55,7 +66,7 @@ Project: 1/4 $\rightarrow$ needs to be defended at the exam. Can't be redone in 
 \paragraph{Slide 3-6:} Why is software security so important?
 \begin{itemize}
 \item Increasing amount of computers: estimated to be at 2 billion 5 years ago. At the moment there are more smartphones than computers and the next wave is that almost all (like IoT) things get internet connectivity these days. This brings its own set of challenges because a PC is different than a car (problems with Jeep!). Much worse things can happen in terms of human safety (pacemakers!). These things pose new threats.
-\item There's more and more software. The sizes of the code bases are incredible. A good estimate about the number of bugs is that well-maintained programs have about 100 bugs (I think? -> or 1 bug for every 100 lines). Bugs can become vulnerabilities as soon as they're discovered. The size of the systems is growing every year, OS's get bigger every year. There will never be bug-free systems. 
+\item There's more and more software. The sizes of the code bases are incredible. A good estimate about the number of bugs is that well-maintained programs have about 1 bug for every 100 lines. Bugs can become vulnerabilities as soon as they're discovered. The size of the systems is growing every year, OS's get bigger every year. There will never be bug-free systems. 
 \item The impact of software grows. Everything runs on software. The important thing is that bugs, 20 years ago, could harm the ICT-industry, now they can harm everything. The yield of cyberweapons is increasing enormously over the past few years. 
 \item All the software is more and more connected. We've had software in cars and fridges for years, but it didn't talk to the outside world. Now all these things start talking to each other, getting multiple Internet connections. They become more exposed to possible attacks. It's also seen in the way business is organized: the ordering software of one company may immediately talk to software of another company. It makes things faster and easier, but if there is a bug in there, it may have a bigger impact than when humans are involved.
 \end{itemize}
@@ -93,7 +104,7 @@ They're too vague about themselves, you have to be more specific when defining t
 
 \paragraph{Slide 34:} How well the program is documented (and administrated) impacts the security.
 
-\paragraph{Slide 36 a.f.:} Case study: e-mail: divides the internet in a number of domains that have domain names that are familiar. Each of these domains has a number of people that have addresses in these domains and machines that support the system. There are 2 special machines: mail storage server (~pop) and mail transfer server (will route the messages $\rightarrow$ $\sim$smtp). Email (simple version used here): users use the client software to put together the mail and then they'll press 'send' and the mail client will contact the mail transfer server to deliver it. Then the server has the logic to find the right storage server to put the mail in (look at the domain of the recipient and then contact that). If it has a local recipient, then it will immediately hand it over to the ail storage server. Otherwise t will contact the other mail transfer server who will handle the delivery at the appropriate storage server. User 2 then receives the email via its mail client.\\
+\paragraph{Slide 36 a.f.:} Case study: e-mail: divides the internet in a number of domains that have domain names that are familiar. Each of these domains has a number of people that have addresses in these domains and machines that support the system. There are 2 special machines: mail storage server (~pop) and mail transfer server (will route the messages $\rightarrow$ $\sim$SMTP). Email (simple version used here): users use the client software to put together the mail and then they'll press 'send' and the mail client will contact the mail transfer server to deliver it. Then the server has the logic to find the right storage server to put the mail in (look at the domain of the recipient and then contact that). If it has a local recipient, then it will immediately hand it over to the ail storage server. Otherwise t will contact the other mail transfer server who will handle the delivery at the appropriate storage server. User 2 then receives the email via its mail client.\\
 
 Potential security goals:
 \begin{enumerate}
@@ -235,7 +246,7 @@ You can recognize our attack code when you see feeb2ecd: FE EB 2E CD (see Figure
 
 \paragraph{Slide 19:} We will attack this program. It takes 2 strings that point to chars. The function allocates a temporary array, then you copy the first string into it and concatenate the second string to it. Then you compare the string to the hardcoded string. If it's equal, you return true, otherwise false. The importance is that the memory safety vulnerabilities are in strcpy and strcat. If the length of either one (or both) of the strings is too large, then you have a buffer overflow. You could implement this with loops too (\textbf{Slide 20}). It does the same thing, but it's harder to see there. 
 
-\paragraph{Slide 21:} We look at the stack right before return. There is room for the tmp array, the saved base pointer, the return address and the 2 arguments. We can see that as we are executing the functions, the different string copies will start copying upward. You see again the little endian at work here (f == 66, I = 69,… -> read the content from right to left). 
+\paragraph{Slide 21:} We look at the stack right before return. There is room for the tmp array, the saved base pointer, the return address and the 2 arguments. We can see that as we are executing the functions, the different string copies will start copying upward. You see again the little endian at work here (f == 66, I = 69,… $\rightarrow$ read the content from right to left). 
 We copy the first and the second string: the first string contains 'file' and the second string is the evil one. The code will start to load the second string into the buffer. In \textbf{Slide 22 and 23} we see the tricks at work. \\
 At the return address we put chars with the ASCII code that, if we put them in memory, we get the location of our shell code. 
 
@@ -465,6 +476,97 @@ Most of the vulnerabilities will not care about the internal structure of the se
 
 \paragraph{Slide 14:} One of the parts that the server creates when it generates a response, consists of HTML and extensions. It's a combination of content, markup and code. Most HTTP-content you get back, will contain all of these 3. Most websites send you code (like JavaScript).
 
+\chapter{Lesson 6}
+\section{Slides: Slides: 3. WebApplicationSecurity}
+
+\paragraph{Slide 14:} We discussed the HTTP protocol. It looks like a simple stateless protocol, but in practice it's a complex stateful protocol. The main things to understand are how cookies and authentication works. We also discussed what the server looks like. Depending on the kind of attack we're looking at, we'll zoom in on the server as much as necessary. We haven't looked at the content of HTTP messages yet. The main things to keep in mind are that HTML is not data (it's a programming language) and HTML is a very connected thing (this will have important security consequences). HTML can pull in stuff from other places automatically. You can ask resources to be pulled in from anywhere on the web. 
+Slide 15 $\&$ 16: Example and its source code: HTML and remote content. This is still within the same top0level domain, but that is not necessary. You have code in the page (the inline script). You don't notice any code on the web page itself. Remote scripts are more risky (e.g. the Twitter part). The code that you put there goes to twitter, they will execute the code to generate the twitter feed that you see. You can include scripts from somewhere else, or write scripts locally that fetches code from somewhere else. 
+Slide 17: Even things that look like mainly data are almost all code. 
+Slide 18: All the things that are red are made up of code. These are only the ones that are visible, but there is also code running in the background (e.g. what users are paying attention to). This is implemented by having the NYT website include scripts. 
+Slide 19: Documented attack of NYT: malicious JS code through the advertisements. They build up a profile of you and broadcast that on an advertisement network. The advertisers can then bid to show. Their ad to you. If anything in this chain gets compromised, malicious code might be sent back instead of advertisement code. Specifically for the NYT page, one attack is shown.
+Slide 20: The important thing to know about the browser is that it's the operating system for web browsing. The browser will display the UI of the websites. The browser offers some services to the applications that it runs. You see that if you think about it this way, the browser really is an OS. It wasn't built with the same security in mind as today's OS's have been built.
+Slide 21: This is more complicated than the C programs that we looked at. The platform was relatively simple, here you have a more complicated setting, so it's worthwhile to discuss the different threat scenarios here. There are many more stakeholders here. It makes sense to be precise about the threat you care about.
+Slide22: It's always important to think about what threat model we're thinking about. If you don't have that in mind, you can't understand why certain countermeasures (don't) work. You have to think about what properties you want to maintain and what power the bad guys have.
+Slide 23: We'll look at 5 threat scenarios, the first 3 are on this slide. 
+	1. You have a good browser and you're visiting the web, you might visit a malicious server.
+	2. You also have the good guy behind the browser and we care about that you're visiting a good site (non-malicious() and at the same time, in other tabs, you're visiting bad site. You're worried about the bad sites attacking your good website through the browser. The kind of things that the attacker can do to good.com are different than in the first case (virus vs steal money f.e.). 
+	3. You own a site (a good one) and we worry about the malicious users trying to access prats they're not supposed to. We're worried that a bad client may do harm to our site.
+Slide 24: We have to worry about the people who control the network. Left: good user with a good browser interacting with a good website , but we're worried about malicious 3rd parties that may be in control of the network. 
+The browser treats scripts differently depending on where they come from. In the previous slide, scripts that are running in the red site can do less with the green script than the other way around.
+On the right we see the attacker getting code into your compartment: we have a good browser, user and website. We worry about attacker that might inject code in between the good parties. There are several ways where he can inject his malicious code. 
+Slide 25: The main countermeasure here is a defensive implementation of the browser. It should handle whatever it gets from the network with care. The browser should avoid low-level safety (? 19.30). Make sure that you don't have any of the vulnerabilities in your browser.
+Secondly, the site can send programs to the browser. A second important countermeasure is what kind of apis do you offer to scripts? You need to make sure that a script api cannot be abused by scripts sent from potentially malicious sites. If you look at javascript api, you see that good efforts have been done.
+The reason why JS doesn't have a general-purpose file system API is for this purpose, but there is a per-site filesystem that you have access to.
+Scripts don't have general-purpose networking API (to scan your network f.e.). But there are very specific capabilities (web socket api,…). There is a tension between offering functionality and bugs. 
+Despite that, there are plenty of security issues in practice.
+Slide 26: 
+	• Drive-by downloads: you are clicking on a link and going to a site and that site will check out what browser you have, send you a JS that will try to get code execution on your machine and use that to run malware on your PC. The threat with the "dangerous" celebrities we saw is this.
+	Even without this, there's a lot of abuse of JS API's, but there's a lot less impact.
+	• Some sites that you visit will try to build a more precise profile of you by looking at the history of other websites that you browsed to. This was not the purpose. This paper showed that sites are doing that anyway and they use a variety of tricks to do this. There's no JS API for this. They could check the color of fonts on the screen: they would generate a huge collection of links that people might have visited, render them and then color it to see if you visited it in the past or not. You can use all kinds of tricks to get the information that you want.
+	• Tracking attacks: companies like FB and Google are tracking what you're doing on the web. The classic way to do webtracking is through cookies. When you are visiting site A, then that site will often pull in stuff from third parties. Often this is stuff from advertising agencies. When you get a response from A, it will pull in stuff from the advertising agency. There's an HTTP request sent by your browser to the agency. The agency can send a cookie. It will remember that you visited site A and that you have been sent cookie number 13 (f.e). If you then go to another site that gets its advertisements from the same agency, the browser will now send the cookie it has received before. On the second time round, the cookie will be sent on the request. The agency will then notice that you already visited site A. the agency can then build up a profile of you and that's how they know what kind of advertisements to send you. This is not a very important attack, but a significant fraction of the population cares about this. Browsers have now turned off 3rd party cookies. The EU has a legislation that forces any site to let users agree to using cookies. Now, agencies fingerprint you. Instead of sending cookies back and forth, every time someone visits them, they send a piece of code that will do a measurement of the browser (how big is the screen, which browser are you using, what plugins do you have, what fonts do you have installed?). They do this measurement and use this to do a fingerprint of you, since this configuration is unique. This way they don't have to store anything on your computer. In order to do tracking on the web, you don't have to store cookies, you just have to do these measurements and it's very hard to defend against this.
+Slide 27: Ab it more tricky: thread model where several websites are open. The browser vendors had thought about this from the beginning. The browser implementation has started implementing isolation between the tabs. SOP: any code that runs in 1 tab can only access information running in the same origin. Whenever either the protocol scheme, the DNS name or the port number changes, you're on a different origin. It's tricky. 
+Slide 28: What does it mean to belong to a certain origin? It's not always that these things are in different tabs. And interesting question is that when you're loading an HTML script from A and it uses an advertiser, to what origin does the script belong? It won't be useful anymore then! Included scripts belong to the origin of the HTML document that includes them. It's clear that the same-origin is definitely not the end of the story. The script from the advertisement agency is now not in the same origin as website A.
+Even ignoring that issue, the same-origin policy is not enough. Scripts can still do a fair amount of damage.
+Slide 29: A script can include additional nodes in the DOM (document object model, JS API that allows you to search in the webpage and insert new images and text in the web page). Scripts can manipulate the DOM from other websites. It can include a new image in the webpage. It can be loaded from anywhere in the web. A possible attack here is to send a script from the bad website that will try to include content in the good website. This is useful when a user is behind a firewall (38.30). The external site can send a script that can start sending messages to internal sites. Similarly, if I have an authenticated session with the good site (FB) and I download some HTML content from attacker site A, the attacker can try to include stuff from FB (which will send requests to FB). All requests sent to FB will then be considered as coming from me. You can do that because scripts can trigger network request and if the attacker can send network requests, this is an opportunity for attack (40.45).
+Slide 30: Similarly, using the same trick you can determine whether the server exists and if it is accessible. If the attacker can send me a script that can contact the internal server of KUL, it might know that I'm at KUL. That way you can target your audience.
+Slide 31: More classic: client trying to attack a server. Countermeasures are shown on the slide. Now, at good.com there is a piece of code and the browser is trying to exploit weaknesses. The attack vectors have to do with bad input validation (? 43.00).
+Slide 32: The way to protect against this is to use a protection protocol (like HTTPS or SSL). That being in place, this attack is still one of the parts of the infrastructure that is still being attacked. Through heart-bleed, an attacker might still attack. How do you know that the public key is the right one? The green lock for example. Even a site that implements all important things over TLS can be attacked if users don't check for the green lock.
+Suppose you have kuleuven.be and you're using a browser. Many sites will, when you're trying to connect to kuleuven.be/kuloket over HTTP, by default it will be an HTTP site, so the first request will be an unencrypted request and then the server will redirect you to HTTPS. From that point on, the communication will be protected. If and attacker is sitting in the middle, the attacker can intercept this (it's not encrypted), he'll go to KUL, KUL will redirect, but the attacker will not redirect. The attacker will get everything over HTTPS, and before sending it back to the browser, it will make this again HTTP message. It will take off SSL. The only difference you'll see is that the lock is not green (the address will still be correct). The attacker will make sure that the redirection will not be sent through. The content shown will be exactly the same, but the information sent to KUL (And thus the attacker) can be seen by the attacker, because he removes the HTTPS layer. The green lock is important. The attacker might use HTTPS, but it doesn't know the private key of KUL, so the lock will turn red.
+People that do check the lock, people get trained to trust this particular shade of green. You'll get an automatic reaction to trust anything that has that particular color. Attackers will use that shade of green on their website so you'll trust it, because that shade of green is present.
+
+
+
+
+
+%TODO afbeelding 1
+
+
+
+
+
+
+
+
+
+
+
+
+Slide 33: Script injection threat model: if you're an attacker, it's easy to get scripts in its own browser, but it's hard for the attacker to get scripts into good.com without help from good.com. Scripts that are explicitly pulled in by good.com will be trusted. Unless good.com is doing that, an attacker that sends scripts to your browser, has only little possibilities. If you want to send scripts to good.com without good.com knowing, you'll send stuff to (52.00?). If good.com is using advertisements, you have all infrastructure of the space to get scripts into high profile sites that show advertisements. Similarly, if you use widgets like twitter, that's again a script. If a hacker succeeds in getting twitter include its script, you're in.
+There are documented incidents where a site was attacked by attackers that changed the scripts (attack the website that hosts the good script) so that users of good.com have scripts running of attacker.com.
+
+
+
+
+%TODO afbeelding 2
+
+
+
+
+
+Slide 34: Sessions are stateful connection between a client and a server. HTTP is stateless. The web solved this by using cookies. This works by having the server assume that it's the first visit, if there are no cookies sent to him. That's how the server decides which sessions belong to which client. 
+How do authenticated sessions work? Settings sessions up is not a security issue, they don't give you more privileges or anything. After you have set up a session, when you want to do something where the server wants to know who you are, at the point where you want to do something where the server needs to know that it's you, you'll have to authenticate. You'll be sent a form that allows the server to check that whoever is behind the session is you. The website will remember that the session is associated with a known user. From then on, all data can be accessed. Moving from a session to an authenticated session thus is security-relevant.
+For any of the threat models we talked about, the attacker may try to take over my session. Anything that the attacker can to do the website to make it think that it's me, but it's not, is a succeeded attack. 
+For the drawings, how would you take over the session?
+	1. Session cookie sniffing: when there are no countermeasures active, the attacker can look at the session cookie, make requests to amazon with that cookie, so Amazon (f.e.) will think the attacker is me and grant the attacker access to your account. As an attacker, you could also pretend to be the website that's being visited. You can get the user's password, but it's not an attack on the session mechanism. Session hijacking: umbrella term where session cookie sniffing is included. Guessing of session cookies: use the number of a cookie (countermeasure: randomness. Make sure the process with which you assign cookies is not predictable). 
+	2. Second attack:
+		a. Send a script to the browser and try to read the cookie. The same-origin policy will prevent you doing that (so it won't work). 
+		b. You could break out of the web model by using plugins (like the flash plugin) and that way break out of the sandbox. 
+Slide 39: It's in the second attacker model. There's a user interacting with the browser. It's logged in on the good site (say Amazon). At some later point, the user is visiting an evil site. The attacker can send back a page that causes the browser to send a new request to amazon. You can include an image from amazon. This hidden request is sent by the browser to an origin from which it has cookies and the cookies will be sent along. The browser has no idea which cookies are session cookies or not. Now, amazon has authenticated you already. So by putting a hidden request in the page that goes to a url that does something on amazon, amazon will think it's you, authorize it and the user will not see the response, because it will go to the evil site.
+The idea is to have it be something as a side effect on the server. You put a request in an ongoing session. You can't look at the results: it's blind injection. 
+Slide 35 $\&$ 36: You can sniff or steal it in the third model. If you can inject the script in the good site, you can steal a cookie (e.g. through advertisements). 
+HTTPOnly-flag on cookies: it's possible for the server, when it's setting a server, to make it inaccessible for scripts. That will be a countermeasure to stealing cookies through scripting. 
+Thinking of all the countermeasures doesn't happen regularly. 
+Slide 37: Before I authenticate, the attacker sets a cookie for me that the attacker knows. When servers see a session cookie, they'll associate state with it. Because the attacker (3rd attack) can write stuff, but not read back, it's an interesting attack technique. The countermeasure is to make sure that when a session goes to an important part, change the session cookie. 
+Slide 38 $\&$ 39: The browser can send additional HTTP headers. 1 of them is the origin header which requests where the request was sent from. That way you can know that a request came from an evil website. Not all websites implement this though.
+The browser can try to filter out the dangerous requests. The browser has a lot of information: it knows that request 9 is going from the evil origin to the orange origin. The browser can decide to block this request (client-side 1.15.45). But sometimes you want this (f.e. when E is not evil, but a payment site. The payment site needs to let amazon know that the payment was okay). CsFire can thus be too strict. 
+In practice the Inclusion of secret token in response is used: Amazon, in every page it sends back which has links that has side-effects (like buying something), the HTML page sent back will have a secret token. This will have to be sent back with every request to do something that changes the state on the server.
+What is the difference between the anti c-surf token and a cookie? Why is the first one secure and the second not? Because the response from origin a cannot be read by origin e. the secret code that was embedded in the first session, cannot be read by the attacker. But the cookie can't be read either. So the important difference is that a cookie is sent back automatically, even without the attacker knowing it. The browser will automatically attach a cookie with a request. The vulnerability comes from the fact that they are automatically attached. The C-surf token will not be automatically attached. The browser doesn't know about tit and it's not used for other purposes. In order to buy/defriend, the good origin will send you back a page that will post something to a url. Part of the parameter will be the secret token. If the attacker would try to do this without the token, it would be blocked by the website. The attacker cannot create a request with the token and the same-origin doesn't allow the attacker to check it. 
+Slide 40: The attacker will show you a page which has some part where you're likely to click on (play button for a game f.e.). It will show you this and on top of that it will render an invisible iFrame that actually loads a page from Facebook f.e.. Suppose FB has the anti-c-surf tokens. You layout the page from F and you know that it has the defriend button at a certain place, you shift this to the play button and he'll actually defriend someone on FB. You'll then send a request with the cookie and the c-surf token. The countermeasure for it is framebusting: a server can make sure that (1.19.00). You can tell the browser not to load a browser in another frame. 
+The attack is similar to you having open another tab with the defriend page where you actually click it yourself. You're clicking on a fb page, you just don't know it. Everything will be happening in the orange origin, it's not a blue button, it's an orange button. 
+
+Exam questions!
+
+cSRF
 
 
 \end{document}
