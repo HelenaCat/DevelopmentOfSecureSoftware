@@ -836,39 +836,49 @@ You can send the checks all out to a PDP: you would collect all the needed info 
 Whenever you use discretionary policies when you give some power to the user, another reason why vulnerabilities can enter the system is because users cannot set policies wisely.
 
 \chapter{Lesson 9}
-Slides: 5
+\section{Slides: 5. UntrustedSWSecurity(1)}
 
-Slide 3: We have talked about various aspects of software security: techniques to prevent attacks at a low level  and techniques to prevent users to do unauthorized actions: access control.
-Now we'll zoom in on the case where the thing that's trying to get access is software. In the previous lectures we talked about humans trying to get access. You can also do access control on a wider class of access control principles. It turns out that if the thing trying to get access, there's more that you can do. It can have more impact om the kind of policies that you have to enforce.
+\paragraph{Slide 3:} We have talked about various aspects of software security: techniques to prevent attacks at a low level  and techniques to prevent users to do unauthorized actions: access control.\\
+Now we'll zoom in on the case where the thing that's trying to get access is software. In the previous lectures we talked about humans trying to perform authorized actions. You can also do access control on a wider class of access control principles. It turns out that when the thing doing the actions is a program, there's more that you can do. It can have more impact on the kind of policies that you have to enforce.\\
 Today we'll look at access control for programs to see what malicious or buggy software can do. We're not gonna make the distinction between bad an buggy software.
-Slide 4: In cases where you want to have parts of software downloaded or installed that you do no completely trust. We'll look at the general case where something can be extended with new software parts at runtime. Anything that has a general-purpose OS can be extended, anything that supports. A scripting language can be extended, anything that supports functionality extensions (like media players),… --> examples of applications/software based systems that can be extended at runtime.
+
+\paragraph{Slide 4:} In cases where you want to have parts of software downloaded or installed that you do not completely trust. We'll look at the general case where something can be extended with new software parts at runtime. Anything that has a general-purpose operating system can be extended, anything that supports a scripting language can be extended, anything that supports functionality extensions (like media players),… $\rightarrow$ examples of applications/software based systems that can be extended at runtime.\\
 The key question  when running it is how we can make sure that we can run it but still maintain some good properties.
-Slide 5: terminology:
-	• Component: piece of SW that is big enough to be always deployed as a whole (f.e. a single line of code is not a component), e.g. DLL or a JAR-file in Java. It doesn't have to be a full app, but large enough to (?? 7.00). Components can be composed in another system. Anything that can be deployed separately and can be composed in another system. Systems can contain multiple components. Some of these will be trusted more than others (e.g. your browsers) and others you do not fully trust (e.g. plugins). A system can be extended at runtime with new components. 
-Slide 6: Examples: OS and components are applications. Web mashup: framework is an HTML page that integrates scripts from advertisers etc. 
-oS and applications is one way of extending a pc with new operations.
-The OS itself can be extended with loadable kernel modules or device drivers: you extend the base system with additional things. We may trust the drivers less than the base system.
+
+\paragraph{Slide 5:} Terminology:
+\begin{itemize}
+\item Component: a piece of software that is big enough to be always deployed as a whole (for example a single line of code is not a component), e.g. DLL in Windows or a JAR-file in Java. It doesn't have to be a full application, but it should make sense to distribute it independently. Components can be composed in another system. Anything that can be deployed separately and can be composed in another system. Systems can contain multiple components. Some of these will be trusted more than others (e.g. your browsers) and others you do not fully trust (e.g. plug-ins). A system can be extended at runtime with new components. 
+\end{itemize}	
+	
+\paragraph{Slide 6:} Examples: the operating system and components are applications. Web mashup framework is an HTML page that integrates scripts from advertisers etc. \\
+OS and applications is one way of extending a PC with new operations.\\
+The operating system itself can be extended with loadable kernel modules or device drivers: you extend the base system with additional things. We may trust the drivers less than the base system.\\
 This is extremely common. In many cases it makes sense to enforce security restrictions.
-Slide 7: A downloaded application should not install kernel-level software of course. We may want to be sure of a downloaded application that it doesn't send out our password file on the internet. We want to enforce some policy using a suitable mechanism.
+
+\paragraph{Slide 7:} A downloaded application should not install kernel-level software of course. We may want to be sure of a downloaded application that it doesn't send out our password file on the Internet. We want to enforce some policy using a suitable mechanism.\\
 Policy: what you want to achieve, mechanism: how you want to achieve this. This rule will be violated every now and then, we'll try to point out when it's not in the standard definition.
-Slide 8: What are examples of policies that we can enforce on software but not on people: we can do anything we could do with security automata.. Stateful access control: both on people and code.
-Liveness: more interesting. It might be useful to know that a device driver never goes into an infinite loop. You don't want that to happen: how to make sure that the device driver will eventually respond? You can enforce this on code but not on people. You might check that the code doesn't have any loops. 
+
+\paragraph{Slide 8:} What are examples of policies that we can enforce on software but not on people: we can do anything we could do with security automata. Stateful access control: both on people and code.\\
+Liveness: more interesting. It might be useful to know that a device driver never goes into an infinite loop. You don't want that to happen: how to make sure that the device driver will eventually respond? You can enforce this on code but not on people. You might check that the code doesn't have any loops. \\
 Information flow control: you might be willing to give a secret to the code if you can be sure that the code will not leak it. You can analyze the code and make sure that it never does any sending. This is something you cannot enforce on people of course. 
-Slide 9: Mechanisms: we can do what we have been doing last week: we had a guard that would intercept any kind of action that the user could do. Then it would decide to pass or drop it. 
-There are some things that we can do more in the case of programs than in the case of people. 
-Java stack walking: if the program consists of multiple components, then it might make sense to look at what components are involved in the request. You might want to trust the user starting a program (like word) than a component starting word. "What code is doing this on behalf of what other code?" --> stack walking: walk up the call stack of the Java program and see what java code is involved in the request. 
-Static analysis: we can't do this to people: analyze it. You can have algorithms look at the code to see if there's a loop in there, if it performs a send on the network,… static analysis: try to prove that the code doesn't do any bad things. Or static analyzers that try to find band stuff: see whether they see any positive evidence of bad things.
-Both mechanisms make sense.
-Program rewriting: you can't do this to people. When you get a coded/code in, you can rewrite it and only then run it. Virtualization: form of execution stream editing: you watch the stream of actions that the program is doing and then maybe edit it. Virtualization: instead of letting the program access the hard disk, you make it access the virtual hard disk
-we'll look at the limitations of run-time modeling. There are policies that you cannot enforce with run-time monitoring, but that you can enforce with the other 2.
-Slide 10: a policy defines a property If you can make a decision about whether the execution of a program is good or not based on looking at one single execution -> then the policy is a property. E.g. a program should not reach /etc/passwd. Clearly not a property: the average response time should be 1 second --> average: you cannot decide if the program is good based on one run.
-Even for properties wee distinguish between safety properties and non-safety properties. If a (??23.00). If at some point the program does something bad, whatever it does later, it will never fix this.
-Counterexample: well-bracketedness: when you've only seen part of the execution, you can't know if the brackets are closed later on. Not a safety property if it might become good when continuing running.
-More or less things that you can enforce with the guard property: guard only sees a single execution and it has to make a decision based on that interaction. Guards also don't look into the future. He can only do that sensibly for safety properties. 
-With programs you might be able to look ahead, not with humans.
+
+\paragraph{Slide 9:} Mechanisms: we can do what we have been doing last week: we had a guard that would intercept any kind of action that the user could do. Then it would decide to pass or drop it. \\
+There are some things that we can do more in the case of programs than in the case of people. \\
+Java stackwalking: if the program consists of multiple components, it might make sense to look at what components are involved in the request. You might want to trust the user starting a program (like Word) than a component starting Word. "What code is doing this on behalf of what other code?" $\rightarrow$ stackwalking: walk up the call stack of the Java program and see what Java code is involved in the request.\\ 
+Static analysis: we can't do this to people: analyze it. You can have algorithms look at the code to see if there's a loop in there, if it performs a send on the network,… static analysis: try to prove that the code doesn't do any bad things. Or static analyzers that try to find bad stuff: see whether they see any positive evidence of bad things.\\
+Both mechanisms make sense.\\
+Program rewriting: you can't do this to people. When you get a coded application/code in, you can rewrite it and only then run it. Virtualization: form of execution stream editing: you watch the stream of actions that the program is doing and then maybe edit it. Instead of letting the program access the hard disk, you make it access the virtual hard disk.\\
+We'll look at the limitations of run-time modeling. There are policies that you cannot enforce with run-time monitoring, but that you can enforce with the other 2.
+
+\paragraph{Slide 10:} A policy defines a property. If you can make a decision about whether the execution of a program is good or not based on looking at one single execution, then the policy is a property. E.g. a program should not reach /etc/passwd. Clearly not a property: the average response time should be 1 second $\rightarrow$ average: you cannot decide if the program is good based on one run.\\ %TODO tot hier
+Even for properties we distinguish between safety properties and non-safety properties. If a (??23.00). If at some point the program does something bad, whatever it does later, it will never fix this.\\
+Counterexample: well-bracketedness: when you've only seen part of the execution, you can't know if the brackets are closed later on. Not a safety property if it might become good when continuing running.\\
+More or less things that you can enforce with the guard property: guard only sees a single execution and it has to make a decision based on that interaction. Guards also don't look into the future. He can only do that sensibly for safety properties. \\
+With programs you might be able to look ahead, not with humans.\\
 Safety properties are (more or less) --> policies can be enforced by run-time monitoring, but not with the guard (I think? 25.45). There are corner-cases that you can't enforce. They have to do with whether badness is decidable or not. E.g. a program has as output other programs and the policy is that it should never spit out a non-terminating program. It's a safety-property: once it has done this, it will still be bad. It's not enforceable with guards because it's undecidable whether a C-program will terminate (26.00).
 As soon as you have non-safety properties, you will have to start thinking about other (27.45).
-Slide 11: part of JVM and .NET VM. Not very often used yet, ot clear why that's the case. Most widely deployed. It's already a generalization with respect to what you can do with (28.00).
+
+\paragraph{Slide 11:} part of JVM and .NET VM. Not very often used yet, ot clear why that's the case. Most widely deployed. It's already a generalization with respect to what you can do with (28.00).
 The sand boxing is still a safety property: runtime monitoring. 
 Slide 12: It has different names: stack walking. It's the common mechanism underling both the .NET VM and JVM. 
 General idea: first there is a notion of permission that you can represent in the program itself: you have objects that have as meaning the right to access some resource of perform an action. You have a security policy (different meaning: policy configuration): for every component of the program (JAR-file or DLL) it will assign to that component a set of permissions: set of permissions.
