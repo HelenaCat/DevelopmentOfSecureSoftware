@@ -835,4 +835,161 @@ You can send the checks all out to a PDP: you would collect all the needed info 
 \paragraph{Slide 42:} This is one of the most important mechanisms for application-level security. Low-level and web application issues are the number 1 vulnerabilities today, but bad access control is definitely also in the top 3 or 5 of why software security fails. The reason why it's error-prone because it's easy to get policies wrong (security automata can help here) and because they're hard to implement (especially complete mediation).\\
 Whenever you use discretionary policies when you give some power to the user, another reason why vulnerabilities can enter the system is because users cannot set policies wisely.
 
+\chapter{Lesson 9}
+Slides: 5
+
+Slide 3: We have talked about various aspects of software security: techniques to prevent attacks at a low level  and techniques to prevent users to do unauthorized actions: access control.
+Now we'll zoom in on the case where the thing that's trying to get access is software. In the previous lectures we talked about humans trying to get access. You can also do access control on a wider class of access control principles. It turns out that if the thing trying to get access, there's more that you can do. It can have more impact om the kind of policies that you have to enforce.
+Today we'll look at access control for programs to see what malicious or buggy software can do. We're not gonna make the distinction between bad an buggy software.
+Slide 4: In cases where you want to have parts of software downloaded or installed that you do no completely trust. We'll look at the general case where something can be extended with new software parts at runtime. Anything that has a general-purpose OS can be extended, anything that supports. A scripting language can be extended, anything that supports functionality extensions (like media players),… --> examples of applications/software based systems that can be extended at runtime.
+The key question  when running it is how we can make sure that we can run it but still maintain some good properties.
+Slide 5: terminology:
+	• Component: piece of SW that is big enough to be always deployed as a whole (f.e. a single line of code is not a component), e.g. DLL or a JAR-file in Java. It doesn't have to be a full app, but large enough to (?? 7.00). Components can be composed in another system. Anything that can be deployed separately and can be composed in another system. Systems can contain multiple components. Some of these will be trusted more than others (e.g. your browsers) and others you do not fully trust (e.g. plugins). A system can be extended at runtime with new components. 
+Slide 6: Examples: OS and components are applications. Web mashup: framework is an HTML page that integrates scripts from advertisers etc. 
+oS and applications is one way of extending a pc with new operations.
+The OS itself can be extended with loadable kernel modules or device drivers: you extend the base system with additional things. We may trust the drivers less than the base system.
+This is extremely common. In many cases it makes sense to enforce security restrictions.
+Slide 7: A downloaded application should not install kernel-level software of course. We may want to be sure of a downloaded application that it doesn't send out our password file on the internet. We want to enforce some policy using a suitable mechanism.
+Policy: what you want to achieve, mechanism: how you want to achieve this. This rule will be violated every now and then, we'll try to point out when it's not in the standard definition.
+Slide 8: What are examples of policies that we can enforce on software but not on people: we can do anything we could do with security automata.. Stateful access control: both on people and code.
+Liveness: more interesting. It might be useful to know that a device driver never goes into an infinite loop. You don't want that to happen: how to make sure that the device driver will eventually respond? You can enforce this on code but not on people. You might check that the code doesn't have any loops. 
+Information flow control: you might be willing to give a secret to the code if you can be sure that the code will not leak it. You can analyze the code and make sure that it never does any sending. This is something you cannot enforce on people of course. 
+Slide 9: Mechanisms: we can do what we have been doing last week: we had a guard that would intercept any kind of action that the user could do. Then it would decide to pass or drop it. 
+There are some things that we can do more in the case of programs than in the case of people. 
+Java stack walking: if the program consists of multiple components, then it might make sense to look at what components are involved in the request. You might want to trust the user starting a program (like word) than a component starting word. "What code is doing this on behalf of what other code?" --> stack walking: walk up the call stack of the Java program and see what java code is involved in the request. 
+Static analysis: we can't do this to people: analyze it. You can have algorithms look at the code to see if there's a loop in there, if it performs a send on the network,… static analysis: try to prove that the code doesn't do any bad things. Or static analyzers that try to find band stuff: see whether they see any positive evidence of bad things.
+Both mechanisms make sense.
+Program rewriting: you can't do this to people. When you get a coded/code in, you can rewrite it and only then run it. Virtualization: form of execution stream editing: you watch the stream of actions that the program is doing and then maybe edit it. Virtualization: instead of letting the program access the hard disk, you make it access the virtual hard disk
+we'll look at the limitations of run-time modeling. There are policies that you cannot enforce with run-time monitoring, but that you can enforce with the other 2.
+Slide 10: a policy defines a property If you can make a decision about whether the execution of a program is good or not based on looking at one single execution -> then the policy is a property. E.g. a program should not reach /etc/passwd. Clearly not a property: the average response time should be 1 second --> average: you cannot decide if the program is good based on one run.
+Even for properties wee distinguish between safety properties and non-safety properties. If a (??23.00). If at some point the program does something bad, whatever it does later, it will never fix this.
+Counterexample: well-bracketedness: when you've only seen part of the execution, you can't know if the brackets are closed later on. Not a safety property if it might become good when continuing running.
+More or less things that you can enforce with the guard property: guard only sees a single execution and it has to make a decision based on that interaction. Guards also don't look into the future. He can only do that sensibly for safety properties. 
+With programs you might be able to look ahead, not with humans.
+Safety properties are (more or less) --> policies can be enforced by run-time monitoring, but not with the guard (I think? 25.45). There are corner-cases that you can't enforce. They have to do with whether badness is decidable or not. E.g. a program has as output other programs and the policy is that it should never spit out a non-terminating program. It's a safety-property: once it has done this, it will still be bad. It's not enforceable with guards because it's undecidable whether a C-program will terminate (26.00).
+As soon as you have non-safety properties, you will have to start thinking about other (27.45).
+Slide 11: part of JVM and .NET VM. Not very often used yet, ot clear why that's the case. Most widely deployed. It's already a generalization with respect to what you can do with (28.00).
+The sand boxing is still a safety property: runtime monitoring. 
+Slide 12: It has different names: stack walking. It's the common mechanism underling both the .NET VM and JVM. 
+General idea: first there is a notion of permission that you can represent in the program itself: you have objects that have as meaning the right to access some resource of perform an action. You have a security policy (different meaning: policy configuration): for every component of the program (JAR-file or DLL) it will assign to that component a set of permissions: set of permissions.
+The basic idea is that every resource access that the program does, it will find out what the active components are (who called a file, which component called what component) with stack inspection. If every component on the call chain has the correct permissions, you'll let it pass, otherwise, you'll throw an exception.
+There are some corner cases, but this is the big idea. We'll zoom in on several aspects now.
+Slide 13: permissions: Java objects that represent rights, they have set semantics: FilePermission represents the permission to read the file with a. specific name if you're in a certain mode. 1 single permission object can represent many primitive rights. There s a way to compare permissions for inclusion. You can ask when you give a component a certain permission and you give (33.00). It's completely extensible . If you define a new abstraction in your system, you ca also define a shopping basket permission to put things in the basket etc. you will be able to reuse (34.30) --> impose rules for shopping baskets without having to reimplement (34.30).
+Slide 14: Gives static permissions to components --> how are you going to determine what permissions a certain component has? You specify a function that says that the more evidence I have that a component is good, the more permissions it receives
+When you load a component from a local hard disk, it has more permissions than when you get it off the web, for example.
+In java the blank dots are the only supported dots, in .NET it's extensible.
+For example: any component that passes inspection by this virus scanner, give it additional permissions.
+This happens at loading time: whenever a component is added to the VM.
+Slide 15: VM with a number of components and different permissions. 
+Slide 16: Stack inspection: what triggers stack inspection? Both the java and .NET ask the implementer of an abstraction to put the (?38.15) in the right place. The necessary checks are done by the library provider.
+demandPermission (.NET-version): primitive that you as a library-writer can use to shield any kind of (39.15).
+Make sure that you call a demandPermission for your shopping basket (?39.30).
+You need to make sure that all code in the request have the demandPermission. 
+Implementation: stack walking. Essentially we'll walk over the runtime stack of the current program and check all the components on the stack and check whether they have the correct permissions.
+This wouldn't work in an unsafe language: if you have an untrusted component in C, you could write to any part in memory and change what permissions you have on the stack. 
+Slide 17: graphical representation of what would happen at stack-inspection time. VM that has 3 components loaded. The boxes are classes in the JAR-files (components(. The blue line is the thread of execution. C3 calls a method in C2 and C2 calls a method in C7 in the yellow component.
+Protection domain: all components that have the same permissions are grouped in the same protection domain. It's kind of a union of all the components that have the same permissions.
+Slide 18: Call stack for the thread on the previous slide. The basic check is that if this calls a method to open a file, the demandPermission will look for each of the components if both blue, yellow and grey have the permissions to open a file. 
+Slide 19: Problem with this: in general, this kind of access control will be way to restricted. If you can only do something if everybody involved in the request has the permission, then there are many paths where you can't do what you want to do.
+Suppose you want to give a component the right to log errors, but you don't want to give it access to the file system (cant read or write). Even if a component has the right to read and write a file and gives the other component the logerror function, this won't work because the first component doesn't have the right to read or write, so no log will be written.
+This is a very secure rule, but it's too restrictive in many cases. It's important to allow one of the components to offer restricted access to the file system: anybody above me doesn't need access to the file system, only me --> extension.
+You want to give a partially trusted component marked with a flag (e.g. a red box around it, so the user is aware of it) the right to open arbitrary windows.
+Slide 20: swm: primitives offered by JVM and .NET to modify how the stalk walk goes: permissions will be relaxed a bit. There are 2 kinds, the first one is the most important one (JVM only supports this one). (47.45). When you call this as a component, you tell the security architecture you're taking (LUISTEREN) from now on, so don't look at (fsk) (48.00). A component that would support loading fonts but needs the file system for that will enable the file system and make sure that (48.30).
+The first one is really essential, otherwise it wouldn't work: give controlled access to resources. 
+The nice thing about being by default very secure and asking anybody who's' doing anything critical for permission, makes it very clear where vulnerabilities could be. If you enable permission in a dumb way, then the component might be able to do things it shouldn't do. 
+Components that enable a permission need to be reviewed if they are safe (I think? 50.15).
+Second one is more good practice: if has been given a permission but it knows it doesn't need it, it can ask to drop it. 
+Slide 21: examples: all call stacks PD1 = protection domain 1. they're all calling a component. PD3 is calling something that needs permission.
+The default behavior is if a demandPermission happens, it will fail because PD1 doesn't have it.
+Slide 22: if PD2 calls enablepermission(p1), demandPermission will now succeed.
+Slide 23: disablepermission: the other way around. First demandPermission(P2) would succeed, when disablePermission(P2) has been executed, demandPermission(P2) will fail.
+Slide 24: You have untrusted code that you want to allow to open a marked window but not open arbitrary windows, then how would you implement that? You would need a trusted component that offers the markedwindow method. It will need permission, it can mess things up, needs to be reviewed. As long as Lib makes sure that (?53.30) it can only open markedwindows, then there's no problem (I think, listen!).
+openWindow has the permission, openMarkedWindow has the permission, but showResults doesn't have the permission. If openMarkedWindow enables the permission, then it will work when showResults() runs. 
+Slide 25: Exact specification of the security automaton for the stack walking architecture. We have methods that say when certain methods should succeed and when they succeed, how they should change the guard (I think 56.15).
+For a stackframe we remember what permissions have been enabled in that stack frame.
+We need to remember what components the VM has, what the static permissions are and we need to maintain the callstack (list of call frames).
+
+On demand permission, it never changes the state, it's just an access check. 
+demandOK: for each stack frame on the stack, it will check from most recent stack frame to oldest stack frame, it will check that the permission that's being demanded (p) is in the static permissions of the components and if not, it will immediately return false, meaning that the demanding the permission fails. 
+One special case: if one of the stack frames that you count from most recent to oldest has enabled p, then return true.
+If someone would be able to enable stuff, he might be tricking the security architecture.
+Slide 26: when an enable happens, there is a check that the permission being enabled is in the static permissions of the component that's requesting the permission.  If this is okay, then we should take the top frame of the stack, set the enabledpermissions of p to true and push it on the stack: change the top frame of the stack to add the permission.
+Calling and returning of functions: whenever there's a call to a function in component c, you push a new stack frame with an initial empty set of enabled permissions. When you return from a function, you pop it.
+Java and .NET differ when returning true at the end of slide 25. in java there's a default return false: more security0sensitive but less user-friendly. Returning true is more user-friendly but less security-sensitive.
+Slide 27: By far the most used (1.02.30). It doesn't appear to be widely used. Most java-apps run with all components having all permissions. The default is not to have the security architecture enabled. It's used in IBM server-side implementations. It's complex to set the policies and there are weaknesses: function-calls between components are very tightly controlled but (1.04.00). 
+The most. Common sandboxing techniques are simpler. You treat the program as an untrusted user.
+Slide 29: IFC: informally speaking, the policy says that the data that you consider confidential should not leak to public channel: lattice-based. Or low integrity data should not influence high-integrity data: data that comes from the internet should not be able to influence system files in the window (1.07.10).
+Slide 30 ev: We have untrusted software, in the web things this was the script. We label the inputs as private or confidential or high, some of the inputs we consider as public. Some of the output channels, we label these depending on who can see them (channels that only go to me are private channels). The idea is that what I put into the program as private  info should not leak, not even indirectly to public channels.
+Slide 34: malicious scripts can enter in various ways: you don't want your credit card data to go to the advertising script --> example of how to decide what is private and what is public. 
+Slide 35: formal statement of the policy: non-interference: there are no 2 executions of the program that get the same public inputs and get different public outputs this is not a safety property: when you do 1 run of the program, you can't tell if it's bad or not. It's not even a property: you need more than 1 execution to decide whether the program is bad or not. We can enforce this with runtime monitoring, but we always enforced an approximation in the previous lectures. We'll also necessarily reject programs that are actually not bad --> you over approximate. You don't allow output to be ever sent, for example. What you want is, you want an enforcement mechanism that ensures that eh program is non0interferent and any program that is good, will be allowed to run.
+If you use lattice-based access control, then necessarily you will sometimes block programs even if they are good.  you start a program always at a low level and as soon as something high-level is read, you're at the high level and you can't go to the low level anymore.
+Example of a program that is secure, but would still be blocked: 
+Something that reads passwords and needs to send something to the low level: f the pw manager would, after it has read pws, it would write the current date to the public channel: as soon as the program has read high data, it can't do anything on the low level anymore, but writing the date is not high level:
+I := read.high()
+Write.low(date);
+
+-> they're not related at all and it's a secure program, but lattice-based access control would block it.
+Slide 36: (1.17.00) --> it takes low input and writes it to low 7, that would be totally secure.
+You would only see (?? Luisteren!)
+
+Slide 37: How can you enforce this? 
+	• Lattice-based access control
+	• Static techniques that use type-system style techniques to enforce non-interference, they're approximative. They work as follows: all variables in the program are given a type which is a security level. You might have a variable l which is the low type and type h which is the high type. The type check will go through the program and will check if if (1.19.00).
+	It will check for all assignments that they are assigned int eh right direction. 
+	H := l is okay
+	L := h --> you put high data on a low variable: the program has lost that this Is private information. It would be rejected by the type checker.
+	More complicated:
+	
+	%TODO image 1
+	
+	
+	
+	
+	
+	
+	
+	In the second example, the low variable is informed if the high information has a certain value.
+	4 checks: (1.21.00)
+	It will check that inputs from high channels can only go to high channels and vice versa.
+	
+	Whenever you have code that 's conditional on (?) you cant do any assignment on (?) 
+	
+	You can only send low ?
+	
+	With a typechecker we could allow h = read\_high(c), write\_low(i), which would've been blocked by stack walking (I think, check!).
+Slide 38: runtime techniques: lattice-based access control: treats it as black box.
+Tainting: in metadata you remember the level and then you propagate that taint throughout assignments. At the point where something goes out, you make sure that it (1.24.30) has some kind of tainting (I think). 
+None of them are completely secure with respect to the non-interference property we saw. 
+These kinds of runtime mechanisms are used frequently but they have remaining security holes. 
+There are some systems that will also deal with the second drawn example, but they're too expensive. They might also block good programs, or take too much time running.
+Slide 39: we can run programs multiple times (you can't do this with people). You're always secure and when the original program was secure, you will not block it. (?1.26.00).
+You will run 2 copies of the program: low copy and high copy
+
+
+
+
+
+%TODO image 2
+
+
+
+
+
+
+
+
+
+You have low and high inputs and low outputs and high outputs. We're going to put the min box and feed the low input both to the low copy and the high copy of the program and we're going to feed the high input only to the high copy of the program.
+We have a default, we never give the low program never high information. We take the low output of the low program and send it out as the actual low output. We're going to block certain outgoing flows. 
+(? Listen 1.29.00)
+First it's easy to see that in the low case, it's impossible to leak high output, because input that comes into Ph never gets to Pl, it never gets to see it. The nice thing is that if the original program was secure, then all the things that you output will be correct: low outputs are computed by Pl and if the program is secure, then the low output should not depend o the high input. On the other hand, the high outputs are also okay because H will get all inputs.
+By running the program twice, we can get secure and completely precise information flow control.
+Downside: this technique will not be able to tell at runtime whether the program is bad. You know it's secure. It might differ from the original program, but it will definitely be secure. It will fix the program instead of blocking it. For non- (1.32.00) properties (?).
+Slide 40: Once we are doing access control on code, it's in principle possible to enforce more expressive policies than safe properties.
+SLA's: 'onaverage' --> no safety properties.
+Slide 42: trend: many applications pull in code conformance (?) at runtime. 
+This will require additional security mechanisms.
+How to enforce safety properties: we understand that well, but stronger properties are still being researched.
+
+
 \end{document}
