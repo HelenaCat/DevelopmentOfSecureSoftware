@@ -766,52 +766,73 @@ Disadvantages of this model: it passes the bug to the user: ``You should set per
 The first one came from a military situation: info could be classified as top secret, secret or public. The info that was classified as top secret, its flow should be tightly controlled. We want a computer to enforce what the military has been doing for ages.\\
 They wanted to enforce that independently of users maybe doing stupid things. This doesn't mean that you don't trust your users, but you may not trust them not to do something stupid. The goal is that even if users are doing stupid things, we still want control on the flow of information.\\
 The objective is to classify security as a lattice of security labels (some things will be more/less confidential). We'll have an ordered set, we'll tag every object and every user with a security label. The meaning is different if it's tagged with 'secret' than when it's tagged 'public'. For users, the tag means clearance: clear up until a certain level. 'public': can see information up to the public level. We want to enforce that whatever happens in the computer system, no user can ever see information below their clearance. Information can only flow upward: public info can flow to secret info, but secret info can never flow to anything public. Even if people do stupid things like installing malicious software, security will still be enforced.
-%TODO tot hier
-\paragraph{Slide 18:} Ordered set where levels represent levels of confidentiality. You can have this linearly (left) or not-ordered. Sometimes you have confidential info that's incomparable with other confidential info. The people who work on project A may need to know on the confidential info about A, but there's no need for them to know about confidential info of project B --> Let as little people as possible know about it. There are lattices where the lattice is not completely ordered. --> compartmentalize things better.
-Slide 19: A security label in military context constst of a level (left side on slide 18) and a compartment (right side). We create labels as combinations of a level and a set of keywords. You order them first pointwise and then for the compartments you order htem by subset inclusions. 
-Slide 20: Example. Confidential info about A (C,{A}) is less confidential than secret info about A (S,{A}). This existed in the miliatry before computers.
-Slide 21: Script-security for webapplications: we had the same-origin policy: a lattice that compartmentalizes websites as shown on the picture. 
-Slide 22: A security automaton. We'l use the notion of security labels and in addition we'll introduce the notion of a subject or a session that the user can start. In web context as a session, in OS context as a specific login.
-We need different subjects or sessions will become clear later. The guard will have a notion of session which represents 1 specific interaction between a suer and a part of the system. 
-They will be labeled with a security label on creaton. If a session gets label L, it can only ever see information with level L or lower.
-If you have someone with a high clearance, he/she may want to work in different modes of operation: may want to work with top0secret stuff, but also with secret or public information. If you don't have this, there are a lot of limitations on what high-level users can do.
-If you're logged in at confidential, you can read public objects, but not top-secret objects.
-*-property: if you log in at confidential level, you can only write on confidential level and not on public level (but you can read on public level). This is sto stop the trojan horse program. The OS will enforce that a malicious program can not write top-secret information to a pulic file for example. This is shown in slide 23.
-Log in at secret level: read file F and F', but not write to File F' (but can write File F).
-This is why we need multiple subjects: if any person with high clearance, if he could only log in with his high clearance, he would only be able to read and write at his level. We need multiple subjects to make things workable for people with high lcearance.
-Slide 24: automaton for LBAC. 
-The dynamic part of the protection state can change while running. You have objects and sessions. They will be labeled with slabel and olabel. Read $\&$ write are simple: if a session wants to read an object, it can do so if its slabel >= olabel.
+
+\paragraph{Slide 18:} Ordered set where levels represent levels of confidentiality. You can have this linearly (left) or not-ordered. Sometimes you have confidential info that's incomparable with other confidential info. The people who work on project A may need to know on the confidential info about A, but there's no need for them to know about confidential info of project B $\rightarrow$ Let as little people as possible know about it. There are lattices where the lattice is not completely ordered. $\rightarrow$ Compartmentalize things better.
+
+\paragraph{Slide 19:} A security label in military context consists of a level (left side on \textbf{Slide 18}) and a compartment (right side). We create labels as combinations of a level and a set of keywords. You order them first pointwise and then for the compartments you order them by subset inclusions. 
+
+\paragraph{Slide 20:} Example. Confidential info about A (C,$\lbrace A \rbrace$) is less confidential than secret info about A (S,$\lbrace A \rbrace$). This existed in the military before computers.
+
+\paragraph{Slide 21:} Script-security for web applications: we had the same-origin policy: a lattice that compartmentalizes websites as shown on the picture. 
+
+\paragraph{Slide 22:} A security automaton. We'll use the notion of security labels and in addition we'll introduce the notion of a subject or a session that the user can start. In web context as a session, in operating system context as a specific login.\\
+We need different subjects or sessions which will become clear later. The guard will have a notion of session which represents 1 specific interaction between a user and a part of the system. \\
+They will be labelled with a security label on creation. If a session gets label L, it can only ever see information with level L or lower.\\
+If you have someone with a high clearance, he/she may want to work in different modes of operation: may want to work with top-secret stuff, but also with secret or public information. If you don't have this possibility, there are a lot of limitations on what high-level users can do.\\
+If you're logged in at confidential, you can read public objects, but not top-secret objects.\\
+*-property: if you log in at confidential level, you can only write on confidential level and not on public level (but you can read on public level). This is to stop the trojan horse program. The operating system will enforce that a malicious program can not write top-secret information to a public file for example. This is shown in \textbf{Slide 23}.\\
+Log in at secret level: read file F and F', but not write to File F' (but can write File F).\\
+This is why we need multiple subjects: if any person with high clearance, if he could only log in with his high clearance, he would only be able to read and write at his level. We need multiple subjects to make things workable for people with high clearance.
+
+\paragraph{Slide 24:} Automaton for LBAC. \\
+The dynamic part of the protection state can change while running. You have objects and sessions. They will be labelled with slabel and olabel. Read $\&$ write are simple: if a session wants to read an object, it can do so if its slabel $>=$ olabel.\\
 Writedown is as described.
-Slide 25: To create a session, its ulabel needs to be higher than or equal to the label. 
+
+\paragraph{Slide 25:} To create a session, its ulabel needs to be higher than or equal to the label. \\
 addObject: creating an object is like writing. 
-Slide 26: you could think of many extensions. You can leave the label unspecified when logging in, but dynamically compute the label based on what you have seen. To protect against potential trojan horses, the label is changed dynamically: determine it based on what the person is doing. 
-DAC can not enforce information flow control, LBAC can.
-What are disadvantages: it's very user-unfriendly: you have to log in to different levels. If you have to work with 2 levels at the same time, it's a nightmare: you have to work on 2 systems at the same time. 
-Even at this level of abstraction, there are a number of known exploits that can still pass information to lower levels: modulate the load of the CPU: written such that you let it write a 1 or 0 and this can be read by S2. it's ipossible to make a useable system that doesn't have these side-channels.
+
+\paragraph{Slide 26:} You could think of many extensions. You can leave the label unspecified when logging in, but dynamically compute the label based on what you have seen. To protect against potential trojan horses, the label is changed dynamically: determine it based on what the person is doing. \\
+DAC can not enforce information flow control, LBAC can.\\
+What are disadvantages: it's very user-unfriendly: you have to log in to different levels. If you have to work with 2 levels at the same time, it's a nightmare: you have to work on 2 systems at the same time. \\
+Even at this level of abstraction, there are a number of known exploits that can still pass information to lower levels: modulate the load of the CPU: written such that you let it write a 1 or 0 and this can be read by S2. It's impossible to make a usable system that doesn't have these side-channels.\\
 It's very rarely used these days, it is used for integrity protection. 
-Slide 27: RBAC is used in many applications.
-Slide 28: It's simpler than LBAC. The main objective is to mae access control manageable. DAC: users can do stupid things and it's hard to manage. (??/ 1.02.00).
-The notion of a professor f.e. is more stable than any individual user. A role can be a sepcific job/responsibility.you need a fairly stable set of permissions: the permissions of a professor are more seady than those of individual users. There's someone who can decide what kind of righsta a professor can have. When he leaves, the rights are deleted. 
-We'll discuss a variant where users can start multiple sessions with different rights. I, as a user, can choose which of my roles I want to activate. When a session si started, yo uhave to choose which role needs to be activated. When logged in as both, you'll have the union of the rights.
-Slide 29: sessions can be started and stopped. Users can start multiple sessions
-checkAccess: the permissions should be given to one of the roles that is activated in the current session. There should exist a role that has that specific permission. If tha'ts the case, it's okay, otherwise it isn't. 
-Slide 30: createSession: the roles that I'm asking for should be a subset of th eroles assigned to this user. 
+
+\paragraph{Slide 27:} RBAC is used in many applications.
+
+\paragraph{Slide 28:} It's simpler than LBAC. The main objective is to make access control manageable. DAC: users can do stupid things and it's hard to manage. E.g. university: professor gets hired and gets certain rights. In DAC, this user will need to get all these permissions and every starting professor will need these permissions. When they leave/change jobs it needs to be changed. RBAC: identify things that are more stable such that the amount of management that needs to be done can be minimized.\\
+The notion of a professor for example. is more stable than any individual user. A role can be a specific job/responsibility.you need a fairly stable set of permissions: the permissions of a professor are more steady than those of individual users. There's someone who can decide what kind of rights a a professor can have. When he leaves, the rights are deleted. \\
+We'll discuss a variant where users can start multiple sessions with different rights. I, as a user, can choose which of my roles I want to activate. When a session is started, you have to choose which role needs to be activated. When logged in as both, you'll have the union of the rights.
+
+\paragraph{Slide 29:} Sessions can be started and stopped. Users can start multiple sessions.\\
+checkAccess: the permission should be given to one of the roles that is activated in the current session. There should exist a role that has that specific permission. If that's the case, it's okay, otherwise it isn't. 
+
+\paragraph{Slide 30:} createSession: the roles that I'm asking for should be a subset of the roles assigned to this user. \\
 dropRole is not necessary, but could be added: when you're running a session, you can choose to drop a certain role (when you have multiple roles). You have to make sure that that role is active. 
-Slide 31: any permission associated with Project B Eng automatically also has all permissions of Engineering Dept. you can have specific permissions associated with the projects and then you have the director that has access to everything. You put the permissions that are common to every engineer and then the subsets of users that can do more become smaller.
-Slide 32: other extensions: put constrtaitns on roles. Fraud is much less likely to happen if 2 people need to collaborate. Having 2 people responsible for something, decreases the chances of people doing bad stuff --> static separation of duty. One role can order goods and one role can aprove payment and no user can be both roles. 
-Dynamic constrains: (??? 1.13.30) principle of least privilege: when doing something, make sure you have the least permissions necessary to perform that job. 
-Slide 34: LBAC for integrity: you control the flow of information. Info can not flow from secret to public. For integrity, that's also flow of info. Protecting the integrity of your files is the same as saying tha tno ino from the internet should flow to that file. You can have labels of trustworthiness instead of labels of ( 1.15.00?). Windows uses this. 
-More dynamic access control models (? 1.16.30). The atct of payment changes the permissions you have. You do something in the system (a normal activity) and the protection state changes because of that activity. It's easy to model with security automata.
-Exam question: come up with a sensible (? 1.18.00).
-Slide 36: Security automata are specification- (1.18.30).
-Slide 37: You should do it in a way such that you can still change the policy if you want to. If you hardcode your policy too much, it will be hard to change it. You have to make sure that you don't introduce vulnerabilities: all accesses must be checked.
-Slide 38: 4 big approaches, 1 slide per approach.
-Rely on the OS: reuse the access control that the OS already has. You ask the OS to authenticate the user and then the application starts a thread in the name of the authenticated user and runs it. Anything the thread does, the OS will assume it's that user. If it tries to do something it's not allowed to do, the OS will complain.
-Slide 39: Use application servers. Kind of an OS for application. They offer a number of services that many applications will need and one of these servers can be access control. Anybody who wants to do an operation onyour application has to pass throught the container. You implement access checks in the red line. F.e. if you want to change the price of a product somewhere, this can only be done if the user is on the OS. You reuse access control that has been implemented by someone else, but on a different level than in the previous slide.
-Slide 40: Specific helper software: reverse proxies: a machine you put in between the applications and the users of the applications. On the PEP-level you implement access control. PEP = ,PDP = (policy decision point denk ik) 1.23.00. this way, the application doesn't have to do access control.
-Slide 41: Do it in the application itself. Avoid this because it's very hard to have complete mediation here. It's easy to forget access checks. Wherever you're manipulating things in the application code, you'll have to think of an explicit acces-ceck. This is known to be very errorprone. It's a very flexible approach but it's very hard to evolve and very easy to make mistakes. 
-You can have the checks all out to a PDP: you would collect all the needed info and pass that on to an authorization engine so that at leas thte policy can evolve rather easily, without having to change the source code.
-Slide 42: This is one of the most important mechanisms for application-level security. Low0level and webapp issues are the number 1 vulnerabilties today, but bad access control is definitely also in the top 3 or 5 of why software security fails. The reason why it's error-prone because it's easy to get policies wrong and because they're hard to implement (especially complete mediation).
-Whenever you use discretionary policies (1.27.45).
+
+\paragraph{Slide 31:} Any permission associated with Project B Eng automatically also has all permissions of Engineering Dept. You can have specific permissions associated with the projects and then you have the director that has access to everything. You put the permissions that are common to every engineer together and the subsets of users that can do more become smaller.
+
+\paragraph{Slide 32:} Other extensions: put constraints on roles. Fraud is much less likely to happen if 2 people need to collaborate. Having 2 people responsible for something, decreases the chances of people doing bad stuff $\rightarrow$ static separation of duty: constraint on who can have what roles. One role can order goods and one role can approve payment and no user can be both roles. \\
+Dynamic constrains: what roles do you want to activate together? E.g. university hospital professors: they both work as practitioner (they see patients) and they're researchers. Data collected as a researcher is anonymized, it's not sensitive information. Patients' data is sensitive $\rightarrow$ choose to work as a practitioner or researcher $\rightarrow$ never have the two roles together so sensitive data can't be published by accident. Principle of least privilege: when doing something, make sure you have the least permissions necessary to perform that job. 
+
+\paragraph{Slide 34:} LBAC for integrity: you control the flow of information. Information can not flow from secret to public. For integrity, that's also flow of information: you don't want your information changed inadvertently. Protecting the integrity of your files is the same as saying that no information from the Internet should flow to that file (e.g. the binary image of your kernel). You can have labels of trustworthiness instead of levels of confidentiality. Windows uses this. \\
+More dynamic access control models: in all the examples we've see, the protection state is changed by explicit management operations: create new object, user,... Sometimes you want the protection state to change automatically. For example, as soon as you've paid, you can choose where to send the guards. The act of payment changes the permissions you have. You do something in the system (a normal activity) and the protection state changes because of that activity. It's easy to model with security automata.\\
+Exam question: come up with policies for any kind of application. Come up with a sensible policy for it and specify it as a security automaton.
+
+\paragraph{Slide 35:} Security automata are specification-artefacts.
+
+\paragraph{Slide 37:} You should do it in a way such that you can still change the policy if you want to. If you hardcode your policy too much, it will be hard to change it. You have to make sure that you don't introduce vulnerabilities: all accesses must be checked.
+
+\paragraph{Slide 38:} Four big approaches, one slide per approach.\\
+Rely on the operating system: reuse the access control that the operating system already has. You ask the operating system to authenticate the user and then the application starts a thread in the name of the authenticated user and runs it. Anything the thread does, the operating system will assume it's that user. If it tries to do something it's not allowed to do, the operating system will complain.
+
+\paragraph{Slide 39:} Use application servers. Kind of an operating system for application. They offer a number of services that many applications will need and one of these servers can perform access control. Anybody who wants to do an operation on your application has to pass through the container. You implement access checks in the red line. For example if you want to change the price of a product somewhere, this can only be done if the user is on the operating system. You reuse access control that has been implemented by someone else, but on a different level than in the previous slide.
+
+\paragraph{Slide 40:} Specific helper software: reverse proxies: a machine you put in between the applications and the users of the applications. On the PEP-level you implement access control. PEP = policy enforcement point, PDP = policy decision point. This way, the application doesn't have to do access control.
+
+\paragraph{Slide 41:} Do it in the application itself. Avoid this because it's very hard to have complete mediation here. It's easy to forget access checks. Whenever you're manipulating things in the application code, you'll have to think of an explicit access-check. This is known to be very error prone. It's a very flexible approach but it's very hard to evolve and very easy to make mistakes. \\
+You can send the checks all out to a PDP: you would collect all the needed info and pass that on to an authorization engine so that at least the policy can evolve rather easily without having to change the source code.
+
+\paragraph{Slide 42:} This is one of the most important mechanisms for application-level security. Low-level and web application issues are the number 1 vulnerabilities today, but bad access control is definitely also in the top 3 or 5 of why software security fails. The reason why it's error-prone because it's easy to get policies wrong (security automata can help here) and because they're hard to implement (especially complete mediation).\\
+Whenever you use discretionary policies when you give some power to the user, another reason why vulnerabilities can enter the system is because users cannot set policies wisely.
 
 \end{document}
