@@ -614,7 +614,6 @@ The main thing you have to remember is the spectrum of problems.
 \item Sometimes you have vulnerabilities that allow you to do something to the database, but you don't see any result: blind injection.
 \item Timing attacks: measure how long it takes to do something for a database.
 \end{itemize}
-%TODO tot hierrr
 
 \paragraph{Slide 50:} You can apply countermeasures at different times.
 
@@ -913,101 +912,115 @@ Suppose you want to give a component the right to log errors, but you don't want
 This is a very secure rule, but it's too restrictive in many cases. It's important to allow one of the components to offer restricted access to the file system: ``Anybody above me doesn't need access to the file system, only me" $\rightarrow$ extension.\\
 You want to give a partially trusted component marked with a flag (e.g. a red box around it, so the user is aware of it) the right to open arbitrary windows.
 
-\paragraph{Slide 20:} Stack walk modifiers: primitives offered by JVM and .NET to modify how the stalk walk goes: permissions will be relaxed a bit. There are 2 kinds, the first one is the most important one (JVM only supports this one). enablePermission can be called by a component. When you call this as a component, you tell the security architecture you're taking responsibility from this point on, so don't check my callers anymore. A component that would support loading fonts but needs the file system for that will enable the file permission but make sure that whoever calls it can only read the font file and nothing else.\\ %TODO tot hier
-The first one is really essential, otherwise it wouldn't work: give controlled access to resources. 
-The nice thing about being by default very secure and asking anybody who's' doing anything critical for permission, makes it very clear where vulnerabilities could be. If you enable permission in a dumb way, then the component might be able to do things it shouldn't do. 
-Components that enable a permission need to be reviewed if they are safe (I think? 50.15).
+\paragraph{Slide 20:} Stack walk modifiers: primitives offered by JVM and .NET to modify how the stalk walk goes: permissions will be relaxed a bit. There are 2 kinds, the first one is the most important one (JVM only supports this one). enablePermission can be called by a component. When you call this as a component, you tell the security architecture you're taking responsibility from this point on, so don't check my callers anymore. A component that would support loading fonts but needs the file system for that will enable the file permission but make sure that whoever calls it can only read the font file and nothing else.\\ 
+The first one is really essential, otherwise it wouldn't work: give controlled access to resources. \\
+The nice thing about being by default very secure and having anybody who's doing anything critical ask for permission, makes it very clear where vulnerabilities could be. If you enable permission in a dumb way, then the component might be able to do things it shouldn't do. \\
+Components that enable a permission need to be reviewed that they are indeed secure.\\
 Second one is more good practice: if has been given a permission but it knows it doesn't need it, it can ask to drop it. 
-Slide 21: examples: all call stacks PD1 = protection domain 1. they're all calling a component. PD3 is calling something that needs permission.
+
+\paragraph{Slide 21:} Examples: all call stacks PD1 = protection domain 1. They're all calling a component. PD3 is calling something that needs permission.\\
 The default behavior is if a demandPermission happens, it will fail because PD1 doesn't have it.
-Slide 22: if PD2 calls enablepermission(p1), demandPermission will now succeed.
-Slide 23: disablepermission: the other way around. First demandPermission(P2) would succeed, when disablePermission(P2) has been executed, demandPermission(P2) will fail.
-Slide 24: You have untrusted code that you want to allow to open a marked window but not open arbitrary windows, then how would you implement that? You would need a trusted component that offers the markedwindow method. It will need permission, it can mess things up, needs to be reviewed. As long as Lib makes sure that (?53.30) it can only open markedwindows, then there's no problem (I think, listen!).
+
+\paragraph{Slide 22:} If PD2 calls enablePermission(p1), demandPermission will now succeed.
+
+\paragraph{Slide 23:} disablePermission: the other way around. First demandPermission(P2) will succeed, when disablePermission(P2) has been executed, demandPermission(P2) will fail.
+
+\paragraph{Slide 24:} You have untrusted code that you want to allow to open a marked window but not open arbitrary windows, then how would you implement that? You would need a trusted component that offers the markedWindow method. It will need the permission to open arbitrary, it can mess things up, needs to be reviewed rigorously. As long as Lib makes sure that it can only be used to open marked windows, then you can safely enable the WindowPermission.\\
 openWindow has the permission, openMarkedWindow has the permission, but showResults doesn't have the permission. If openMarkedWindow enables the permission, then it will work when showResults() runs. 
-Slide 25: Exact specification of the security automaton for the stack walking architecture. We have methods that say when certain methods should succeed and when they succeed, how they should change the guard (I think 56.15).
-For a stackframe we remember what permissions have been enabled in that stack frame.
-We need to remember what components the VM has, what the static permissions are and we need to maintain the callstack (list of call frames).
 
-On demand permission, it never changes the state, it's just an access check. 
-demandOK: for each stack frame on the stack, it will check from most recent stack frame to oldest stack frame, it will check that the permission that's being demanded (p) is in the static permissions of the components and if not, it will immediately return false, meaning that the demanding the permission fails. 
-One special case: if one of the stack frames that you count from most recent to oldest has enabled p, then return true.
+\paragraph{Slide 25:} Exact specification of the security automaton for the stack walking architecture. We have methods that say when certain methods should succeed and when they succeed, how they should change the state of the guard.\\
+For a stack frame we remember what permissions have been enabled in that stack frame.\\
+We need to remember what components the virtual machine has, what the static permissions are and we need to maintain the call stack (list of call frames).\\
+
+On demand(Permission) it never changes the state, it's just an access check. \\
+demandOK: for each stack frame on the stack, it will check from most recent stack frame to oldest stack frame that the permission that's being demanded (p) is in the static permissions of the components and if not, it will immediately return false, meaning that the demanding the permission fails. \\
+One special case: if one of the stack frames that you count from most recent to oldest has enabled p, then return true.\\
+Java and .NET differ when returning true at the end of the slide. In Java there's a default return false: more security-sensitive but less user-friendly. Returning true is more user-friendly but less security-sensitive.\\
 If someone would be able to enable stuff, he might be tricking the security architecture.
-Slide 26: when an enable happens, there is a check that the permission being enabled is in the static permissions of the component that's requesting the permission.  If this is okay, then we should take the top frame of the stack, set the enabledpermissions of p to true and push it on the stack: change the top frame of the stack to add the permission.
+
+\paragraph{Slide 26:} When an enable happens, there is a check that the permission being enabled is in the static permissions of the component that's requesting the permission.  If this is okay, then we should take the top frame of the stack, set the enabled permissions of p to true and push it on the stack: change the top frame of the stack to add the permission.\\
 Calling and returning of functions: whenever there's a call to a function in component c, you push a new stack frame with an initial empty set of enabled permissions. When you return from a function, you pop it.
-Java and .NET differ when returning true at the end of slide 25. in java there's a default return false: more security0sensitive but less user-friendly. Returning true is more user-friendly but less security-sensitive.
-Slide 27: By far the most used (1.02.30). It doesn't appear to be widely used. Most java-apps run with all components having all permissions. The default is not to have the security architecture enabled. It's used in IBM server-side implementations. It's complex to set the policies and there are weaknesses: function-calls between components are very tightly controlled but (1.04.00). 
-The most. Common sandboxing techniques are simpler. You treat the program as an untrusted user.
-Slide 29: IFC: informally speaking, the policy says that the data that you consider confidential should not leak to public channel: lattice-based. Or low integrity data should not influence high-integrity data: data that comes from the internet should not be able to influence system files in the window (1.07.10).
-Slide 30 ev: We have untrusted software, in the web things this was the script. We label the inputs as private or confidential or high, some of the inputs we consider as public. Some of the output channels, we label these depending on who can see them (channels that only go to me are private channels). The idea is that what I put into the program as private  info should not leak, not even indirectly to public channels.
-Slide 34: malicious scripts can enter in various ways: you don't want your credit card data to go to the advertising script --> example of how to decide what is private and what is public. 
-Slide 35: formal statement of the policy: non-interference: there are no 2 executions of the program that get the same public inputs and get different public outputs this is not a safety property: when you do 1 run of the program, you can't tell if it's bad or not. It's not even a property: you need more than 1 execution to decide whether the program is bad or not. We can enforce this with runtime monitoring, but we always enforced an approximation in the previous lectures. We'll also necessarily reject programs that are actually not bad --> you over approximate. You don't allow output to be ever sent, for example. What you want is, you want an enforcement mechanism that ensures that eh program is non0interferent and any program that is good, will be allowed to run.
-If you use lattice-based access control, then necessarily you will sometimes block programs even if they are good.  you start a program always at a low level and as soon as something high-level is read, you're at the high level and you can't go to the low level anymore.
-Example of a program that is secure, but would still be blocked: 
-Something that reads passwords and needs to send something to the low level: f the pw manager would, after it has read pws, it would write the current date to the public channel: as soon as the program has read high data, it can't do anything on the low level anymore, but writing the date is not high level:
-I := read.high()
-Write.low(date);
 
--> they're not related at all and it's a secure program, but lattice-based access control would block it.
-Slide 36: (1.17.00) --> it takes low input and writes it to low 7, that would be totally secure.
-You would only see (?? Luisteren!)
+\paragraph{Slide 27:} By far the most widely used control mechanisms. It doesn't appear to be widely used. Most Java-applications run with all components having all permissions. The default is not to have the security architecture enabled. It's used in IBM server-side implementations. It's complex to set the policies and there are weaknesses: function-calls between components are very tightly controlled but reading and writing fields across the component boundaries is not tightly controllled.\\ 
+The most common sandboxing techniques are simpler. You treat the program as an untrusted user.
 
-Slide 37: How can you enforce this? 
-	• Lattice-based access control
-	• Static techniques that use type-system style techniques to enforce non-interference, they're approximative. They work as follows: all variables in the program are given a type which is a security level. You might have a variable l which is the low type and type h which is the high type. The type check will go through the program and will check if if (1.19.00).
-	It will check for all assignments that they are assigned int eh right direction. 
-	H := l is okay
-	L := h --> you put high data on a low variable: the program has lost that this Is private information. It would be rejected by the type checker.
-	More complicated:
+\paragraph{Slide 29:} Information flow control: informally speaking, the policy says that the data that you consider confidential should not leak to the public channel: lattice-based. Or low integrity data should not influence high-integrity data: data that comes from the Internet should not be able to influence system files in the window directory.
+
+\paragraph{Slide 30-33:} We have untrusted software, in the web applications this was the script. We label the inputs as private or confidential or high, some of the inputs we consider as public. We label the output channels depending on who can see them (channels that only go to me are private channels). The idea is that what I put into the program as private  info should not leak, not even indirectly to public channels.
+
+\paragraph{Slide 34:} Malicious scripts can enter in various ways: you don't want your credit card data to go to the advertising script $\rightarrow$ example of how to decide what is private and what is public. 
+
+\paragraph{Slide 35:} Formal statement of the policy: non-interference: there are no two executions of the program that get the same public inputs and get different public outputs. This is not a safety property: when you do one run of the program, you can't tell if it's bad or not. It's not even a property: you need more than one execution to decide whether the program is bad or not. We can enforce this with runtime monitoring, but we always enforced an approximation in the previous lectures. We'll also necessarily reject programs that are actually not bad $\rightarrow$ you over-approximate. You don't allow output to be ever sent, for example. What you want is an enforcement mechanism that ensures that the program is non-interferent and any program that is good will be allowed to run.\\
+If you use lattice-based access control, then necessarily you will sometimes block programs even if they are good. You start a program always at a low level and as soon as something high-level is read, you're at the high level and you can't go to the low level anymore.\\
+Example of a program that is secure, but would still be blocked: \\
+Something that reads passwords and needs to send something to the low level: if the password manager would, after it has read passwords, write the current date to the public channel: as soon as the program has read high data, it can't do anything on the low level anymore, but writing the date is not high level:
+\begin{verbatim}
+	i := read.high();
+	write.low(date);
+\end{verbatim}
+$\rightarrow$ they're not related at all and it's a secure program, but lattice-based access control would block it.
+
+\paragraph{Slide 36:} If you look at one single execution: it gets a public 1 and a private 7. It outputs a public 7 and a private 3. You cannot know if the 7 is the one that went in $\rightarrow$ it takes low input and writes it to low 7, that would be totally secure.\\
+You would only be able to see the correlation between input and output after a couple of runs.
+
+\paragraph{Slide 37:} How can you enforce this? 
+\begin{itemize}
+\item Lattice-based access control
+\item Static techniques that use type-system style techniques to enforce non-interference, they're approximative. They work as follows: all variables in the program are given a type which is a security level. You might have a variable l which is the low type and type h which is the high type. The type check will go through the program and make sure that whenever you read from an input channel, you assign it to a variable of the appropriate type. So if you read from low, it has to go to a low variable and if you read from high, it has to go to a high variable.\\
+Secondly, it will check for all assignments that they are assigned in the right direction.
+\begin{verbatim}
+	h := l
+\end{verbatim} is okay.
+\begin{verbatim}
+	l := h
+\end{verbatim} $\rightarrow$ you put high data on a low variable: the program has lost that this is private information. It would be rejected by the type checker.\\
+More complicated: see Figure \ref{les09_01}.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=60mm]{Les09_01.png}
+\caption{Lesson 9 Slide 37.} 
+\label{les09_01}
+\end{figure}
 	
-	%TODO image 1
-	
-	
-	
-	
-	
-	
-	
-	In the second example, the low variable is informed if the high information has a certain value.
-	4 checks: (1.21.00)
-	It will check that inputs from high channels can only go to high channels and vice versa.
-	
-	Whenever you have code that 's conditional on (?) you cant do any assignment on (?) 
-	
-	You can only send low ?
-	
-	With a typechecker we could allow h = read\_high(c), write\_low(i), which would've been blocked by stack walking (I think, check!).
-Slide 38: runtime techniques: lattice-based access control: treats it as black box.
-Tainting: in metadata you remember the level and then you propagate that taint throughout assignments. At the point where something goes out, you make sure that it (1.24.30) has some kind of tainting (I think). 
-None of them are completely secure with respect to the non-interference property we saw. 
-These kinds of runtime mechanisms are used frequently but they have remaining security holes. 
+In the second example, the low variable is informed if the high information has a certain value.\\
+4 checks:
+\begin{enumerate}
+\item It will check that inputs from high channels can only go to high variables and vice versa.
+\item Assignments will be checked so that information can only flow upward.	
+\item Whenever you have code that 's conditional on high values, you can't do any assignment to low variables. 
+\item Whenever you send something on an output channel, you can only send low variables on a low output channel, you cannot send high variables on a low output channel.
+\end{enumerate}	
+With a typechecker we could allow h = read\_high(c), write\_low(i), which would've been blocked by lattice-based access control because we see that we read something from a high channel to a high variable and we write to the low variable a constant that doesn't need information.
+\end{itemize}
+
+\paragraph{Slide 38:} Runtime techniques: lattice-based access control: treats it as black box.\\
+Taint-tracking: in metadata you remember the level/what color/taint it has and then you propagate that taint throughout assignments. At the point where something goes out, you make sure that if it goes out on a low channel, it doesn't have anything high-tainted.\\ 
+None of them are completely secure with respect to the non-interference property we saw. \\
+These kinds of runtime mechanisms are used frequently but they have remaining security holes. \\
 There are some systems that will also deal with the second drawn example, but they're too expensive. They might also block good programs, or take too much time running.
-Slide 39: we can run programs multiple times (you can't do this with people). You're always secure and when the original program was secure, you will not block it. (?1.26.00).
-You will run 2 copies of the program: low copy and high copy
 
+\paragraph{Slide 39:} We can run programs multiple times (you can't do this with people). You can enforce non-interference soundly and precisely. You're always secure and when the original program was secure, you will not block it. It's possible by running the program multiple times.\\
+You will run 2 copies of the program: low copy and high copy, see Figure \ref{les09_02}.
 
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=90mm]{Les09_02.png}
+\caption{Lesson 9 Slide 39.} 
+\label{les09_02}
+\end{figure}
 
+You have low and high inputs and low outputs and high outputs. We're going to put the min box and feed the low input both to the low copy and the high copy of the program and we're going to feed the high input only to the high copy of the program.\\
+We have a default, we never give the low program never high information. We take the low output of the low program and send it out as the actual low output. We're going to block certain outgoing flows. Certain output is blocked. We're going to use the high output of the high input.\\
+First it's easy to see that in the low case, it's impossible to leak high output, because input that comes into $P_{H}$ never gets to $P_{L}$, it never gets to see it. The nice thing is that if the original program was secure, then all the things that you output will be correct: low outputs are computed by $P_{L}$ and if the program is secure, then the low output should not depend on the high input. On the other hand, the high outputs are also okay because H will get all inputs.\\
+By running the program twice, we can get secure and completely precise information flow control.\\
+Downside: this technique will not be able to tell at runtime whether the program is bad. You know it's secure. It might differ from the original program, but it will definitely be secure. It will fix the program instead of blocking it. For non-properties this is easier to do than blocking.
 
+\paragraph{Slide 40:} Once we are doing access control on code, it's in principle possible to enforce more expressive policies than safety properties.\\
+SLA's: 'on average' $\rightarrow$ no safety properties.
 
-%TODO image 2
-
-
-
-
-
-
-
-
-
-You have low and high inputs and low outputs and high outputs. We're going to put the min box and feed the low input both to the low copy and the high copy of the program and we're going to feed the high input only to the high copy of the program.
-We have a default, we never give the low program never high information. We take the low output of the low program and send it out as the actual low output. We're going to block certain outgoing flows. 
-(? Listen 1.29.00)
-First it's easy to see that in the low case, it's impossible to leak high output, because input that comes into Ph never gets to Pl, it never gets to see it. The nice thing is that if the original program was secure, then all the things that you output will be correct: low outputs are computed by Pl and if the program is secure, then the low output should not depend o the high input. On the other hand, the high outputs are also okay because H will get all inputs.
-By running the program twice, we can get secure and completely precise information flow control.
-Downside: this technique will not be able to tell at runtime whether the program is bad. You know it's secure. It might differ from the original program, but it will definitely be secure. It will fix the program instead of blocking it. For non- (1.32.00) properties (?).
-Slide 40: Once we are doing access control on code, it's in principle possible to enforce more expressive policies than safe properties.
-SLA's: 'onaverage' --> no safety properties.
-Slide 42: trend: many applications pull in code conformance (?) at runtime. 
-This will require additional security mechanisms.
+\paragraph{Slide 42:} Trend: many applications pull in code conformance at runtime. \\
+This will require additional security mechanisms.\\
 How to enforce safety properties: we understand that well, but stronger properties are still being researched.
 
 
